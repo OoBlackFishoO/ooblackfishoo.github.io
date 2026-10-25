@@ -218,6 +218,7 @@ window.__fish3d_ok = true; /* 供 HTML 内的后备检测使用 */
       rig.rotation.y += dx * 0.011;
       spinV = dx * 0.011;
       rig.rotation.x = Math.max(-0.5, Math.min(0.5, rig.rotation.x + dy * 0.007));
+      if (reduceMotion) dirty = true;   /* 静态模式：拖拽后重绘 */
     });
 
     ["pointerup", "pointercancel"].forEach(function (ev) {
@@ -236,8 +237,10 @@ window.__fish3d_ok = true; /* 供 HTML 内的后备检测使用 */
       raycaster.setFromCamera(ndc, camera);
       var hits = raycaster.intersectObjects(fish.children, true);
       if (!hits.length) return;
-      qv -= 9;                                        /* 弹簧冲量 */
-      spawnBurst(hits[0].point.x, hits[0].point.y, hits[0].point.z, 6);
+      if (!reduceMotion) {                     /* 静态模式不做 Q 弹和迸泡 */
+        qv -= 9;                                /* 弹簧冲量 */
+        spawnBurst(hits[0].point.x, hits[0].point.y, hits[0].point.z, 6);
+      }
       say(PHRASES[Math.floor(Math.random() * PHRASES.length)]);
     }
   }
@@ -253,9 +256,19 @@ window.__fish3d_ok = true; /* 供 HTML 内的后备检测使用 */
 
   /* ---------- 主循环 ---------- */
   var t = 0;
+  var dirty = true;   /* 减少动态模式下只在有变化时重绘一帧 */
   function loop() {
     requestAnimationFrame(loop);
     if (!running || !visible) return;
+
+    /* 减少动态：不做任何自主动画，只在拖拽/尺寸变化后重绘静态一帧 */
+    if (reduceMotion) {
+      if (dirty) {
+        renderer.render(scene, camera);
+        dirty = false;
+      }
+      return;
+    }
 
     var dt = Math.min(clock.getDelta(), 0.05);
     t += dt;
@@ -314,15 +327,16 @@ window.__fish3d_ok = true; /* 供 HTML 内的后备检测使用 */
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+    dirty = true;
   }
 
-  /* 不在视口 / 标签页后台时暂停，省电 */
+  /* 不在视口 / 标签页后台时暂停，省电（减少动态由 loop 内部分支处理） */
   new IntersectionObserver(function (en) {
     visible = en[0].isIntersecting;
   }, { threshold: 0.02 }).observe(stage);
 
   document.addEventListener("visibilitychange", function () {
-    running = !document.hidden && !reduceMotion;
+    running = !document.hidden;
   });
 
   try {
