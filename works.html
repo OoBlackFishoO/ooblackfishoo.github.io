@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>作品 · 小黑鱼的手作小窝</title>
+  <meta name="description" content="OoBlackFishoO 的代码作品集：网站、小工具和正在构思中的点子。">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="css/style.css">
+  <noscript><style>.pop{opacity:1 !important;transform:none !important}</style></noscript>
+</head>
+<body data-page="works">
+
+  <nav class="nav">
+    <a class="nav-logo" href="index.html">
+      <span class="ava">🐟</span><span class="name">小黑鱼</span>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" data-nav="home" href="index.html">首页</a>
+      <a class="nav-link" data-nav="works" href="works.html">作品</a>
+      <a class="nav-link" data-nav="games" href="games.html">游戏区</a>
+      <a class="nav-link" href="https://space.bilibili.com/567414097" target="_blank" rel="noopener">B站</a>
+    </div>
+  </nav>
+
+  <section class="section" style="padding-top:48px">
+    <div class="section-head">
+      <span class="badge coral">🧶 作品集</span>
+      <h2>捏过的、在捏的、想捏的</h2>
+    </div>
+
+    <div class="cards">
+      <!-- 作品一：这个网站 -->
+      <a class="clay-card pop" href="index.html">
+        <div class="card-top">
+          <span class="clay-icon" style="background:#FFE3D5">🧶</span>
+          <h3>小黑鱼的手作小窝</h3>
+          <span class="badge mint">进行中</span>
+        </div>
+        <p class="desc">
+          你正在看的这个网站。用球体"捏"出 3D 黏土鱼，配 CSS 黏土卡片和物理微动效，
+          从 2022 年那张白板完全重做。
+        </p>
+        <div class="chips"><span class="chip">Three.js</span><span class="chip">CSS</span><span class="chip">GitHub Pages</span></div>
+      </a>
+
+      <!-- 作品二：SeisView -->
+      <a class="clay-card pop" href="https://github.com/OoBlackFishoO/SeisView" target="_blank" rel="noopener" style="--d:.08s">
+        <div class="card-top">
+          <span class="clay-icon" style="background:#DFF5E9">🌍</span>
+          <h3>SeisView</h3>
+          <span class="badge sky">持续更新</span>
+        </div>
+        <p class="desc">
+          3D 地震数据可视化工具：读取 .sgy / .su / .mat / .npy，格式互转，
+          导出论文用的 png/svg 图件，支持多数据对比观察。
+        </p>
+        <div class="chips"><span class="chip">Python</span><span class="chip">segyio</span><span class="chip">地球物理</span></div>
+      </a>
+
+      <!-- 作品三：暗翻兽王棋 -->
+      <a class="clay-card pop" href="games/beast-chess.html" style="--d:.16s">
+        <div class="card-top">
+          <span class="clay-icon" style="background:#ECE4FA">🦁</span>
+          <h3>暗翻兽王棋</h3>
+          <span class="badge sky">可以玩</span>
+        </div>
+        <p class="desc">
+          自创规则的 6×7 暗棋：动物军团大吃小，鼠钻缝隙专克兽王，豹走直线、
+          猫行斜线、刺猬扎嘴反伤。同屏双人，或挑战两档 AI（小怪 / 老六）。
+        </p>
+        <div class="chips"><span class="chip">自制规则</span><span class="chip">JavaScript</span><span class="chip">AI 对战</span></div>
+      </a>
+
+      <!-- 作品四：站内小游戏 -->
+      <a class="clay-card pop" href="games.html" style="--d:.24s">
+        <div class="card-top">
+          <span class="clay-icon" style="background:#DFEEF9">🫧</span>
+          <h3>黏土泡泡</h3>
+          <span class="badge sky">可以玩</span>
+        </div>
+        <p class="desc">
+          网站自带的物理小游戏：matter.js 驱动的泡泡雨，戳爆得分，
+          还能一键关掉重力看它们飘满整个屏幕。
+        </p>
+        <div class="chips"><span class="chip">matter.js</span><span class="chip">Canvas 2D</span><span class="chip">物理</span></div>
+      </a>
+
+      <!-- 空位：复制上面的卡片即可新增作品 -->
+      <div class="clay-card placeholder pop" style="--d:.32s">
+        <span class="q">🪄</span>
+        <h3>下一个作品</h3>
+        <p class="desc">复制一张卡片、改三行字，这里就是你的新展位</p>
+      </div>
+    </div>
+
+    <!-- 怎么加新作品：给未来的自己 -->
+    <div class="tip-card pop" style="margin-top:26px">
+      <span class="ico">📌</span>
+      <p>
+        <b>给未来的自己：</b>新增作品时，复制上面任意一张 <code>.clay-card</code>，
+        改掉标题、描述和标签，把链接换成项目的地址（或 <code>games/xxx.html</code>）就行。
+        状态徽章可以换成：<code>进行中 / 可以玩 / 构思中 / 翻车了</code>。
+      </p>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <svg class="footer-wave" viewBox="0 0 1440 46" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0,46 C240,6 480,6 720,26 C960,46 1200,10 1440,30 L1440,46 Z" fill="#F3E3CC"/>
+    </svg>
+    <div class="footer-inner">
+      <div class="footer-logo" title="捏我试试">
+        <span class="ava">🐟</span>
+        <span>小黑鱼的手作小窝</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/OoBlackFishoO" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://space.bilibili.com/567414097" target="_blank" rel="noopener">Bilibili</a>
+        <a href="index.html">首页</a>
+        <a href="games.html">游戏区</a>
+      </div>
+      <p class="footer-copy">© 2026 OoBlackFishoO</p>
+    </div>
+  </footer>
+
+  <script src="js/clay.js"></script>
+</body>
+</html>

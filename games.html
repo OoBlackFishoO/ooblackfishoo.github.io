@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>游戏区 · 小黑鱼的手作小窝</title>
+  <meta name="description" content="小黑鱼做的网页小游戏：现在就能玩《黏土泡泡》，更多游戏正在来的路上。">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="css/style.css">
+  <noscript><style>.pop{opacity:1 !important;transform:none !important}</style></noscript>
+</head>
+<body data-page="games">
+
+  <nav class="nav">
+    <a class="nav-logo" href="index.html">
+      <span class="ava">🐟</span><span class="name">小黑鱼</span>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" data-nav="home" href="index.html">首页</a>
+      <a class="nav-link" data-nav="works" href="works.html">作品</a>
+      <a class="nav-link" data-nav="games" href="games.html">游戏区</a>
+      <a class="nav-link" href="https://space.bilibili.com/567414097" target="_blank" rel="noopener">B站</a>
+    </div>
+  </nav>
+
+  <section class="section" style="padding-top:48px">
+    <div class="section-head">
+      <span class="badge mint">🎮 游戏区</span>
+      <h2>现在就能玩的</h2>
+    </div>
+
+    <!-- ===== 内置小游戏：黏土泡泡 ===== -->
+    <div class="clay-card pop" style="padding:18px">
+      <div class="card-top" style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:14px">
+          <span class="clay-icon" style="background:#DFEEF9;width:52px;height:52px;font-size:26px">🫧</span>
+          <div>
+            <h3>黏土泡泡 <span class="badge coral" style="vertical-align:middle">NEW</span></h3>
+            <p class="desc" style="margin-top:2px">点爆掉下来的泡泡 · 试试关掉重力</p>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="clay-btn ghost small" id="btn-gravity" type="button">🚀 关闭重力</button>
+          <button class="clay-btn ghost small" id="btn-reset" type="button">🔄 重开</button>
+        </div>
+      </div>
+
+      <div class="game-wrap" id="game-wrap">
+        <canvas id="game-canvas"></canvas>
+        <div class="game-hud">
+          <span class="score-chip" id="score">得分 0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 未来游戏的位置 ===== -->
+    <div class="cards" style="margin-top:26px">
+      <a class="clay-card pop" href="games/beast-chess.html">
+        <div class="card-top">
+          <span class="clay-icon" style="background:#ECE4FA">🦁</span>
+          <h3>暗翻兽王棋</h3>
+          <span class="badge butter">新游戏</span>
+        </div>
+        <p class="desc">
+          6×7 暗棋对战：翻开你的动物军团，大吃小；小老鼠能钻进兽王的缝隙掀翻狮虎二王。
+          豹直线冲锋、猫斜行突袭、刺猬扎嘴反伤。同屏双人轮流点。
+        </p>
+        <div class="chips"><span class="chip">棋类</span><span class="chip">同屏双人</span><span class="chip">策略</span></div>
+      </a>
+
+      <div class="clay-card placeholder pop" style="--d:.08s">
+        <span class="q">✨</span>
+        <h3>下一个游戏</h3>
+        <p class="desc">做好了放进 games/，这里就多一张卡</p>
+      </div>
+    </div>
+
+    <!-- 怎么接入自己的游戏 -->
+    <div class="tip-card pop" style="margin-top:26px">
+      <span class="ico">📦</span>
+      <p>
+        <b>怎么放入自己的游戏：</b>把做好的游戏文件（如 <code>my-game.html</code>）放进
+        <code>games/</code> 文件夹，然后把上面的占位卡片换成
+        <code>&lt;a class="clay-card" href="games/my-game.html"&gt;…&lt;/a&gt;</code>。
+        想直接在卡片里玩？用 <code>&lt;iframe src="games/my-game.html"&gt;&lt;/iframe&gt;</code> 嵌进来。
+      </p>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <svg class="footer-wave" viewBox="0 0 1440 46" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0,46 C240,6 480,6 720,26 C960,46 1200,10 1440,30 L1440,46 Z" fill="#F3E3CC"/>
+    </svg>
+    <div class="footer-inner">
+      <div class="footer-logo" title="捏我试试">
+        <span class="ava">🐟</span>
+        <span>小黑鱼的手作小窝</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/OoBlackFishoO" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://space.bilibili.com/567414097" target="_blank" rel="noopener">Bilibili</a>
+        <a href="index.html">首页</a>
+        <a href="works.html">作品</a>
+      </div>
+      <p class="footer-copy">© 2026 OoBlackFishoO</p>
+    </div>
+  </footer>
+
+  <script src="js/clay.js"></script>
+  <script src="libs/matter.min.js"></script>
+  <script src="js/bubbles-game.js"></script>
+</body>
+</html>

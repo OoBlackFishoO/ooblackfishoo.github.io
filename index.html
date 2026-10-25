@@ -1,31 +1,198 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>OoBlackFishoO的网站</title>
-    <style>  
-      body {
-        margin: 0;
-      }
-    </style>
-  </head>
-  <body>
-	  <h1>OoBlackFishoO</h1>
-    <div style="height: 120px; background-color: #f5f5f5; border: 5px solid #eee; text-align:center;">
-    <img src="images/logo.jpg" alt="logo" width="120" height="120">
-    </div>
-    <div style="max-width:760px; margin:30px auto; padding:10px; line-height:1.7; text-align:center;">
-      <p>网页制作：</p>
-      <p>小概念：margin-外边距、auto-盒子自动居中、padding-内边距</p>
-      <p>Let's GOOOO!!!!!!!</p>
-      <p>尽请期待······</p>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>小黑鱼的手作小窝 · OoBlackFishoO</title>
+  <meta name="description" content="一条用代码捏黏土的小黑鱼：网页小游戏、代码作品与B站日常。">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="css/style.css">
+  <noscript><style>.pop{opacity:1 !important;transform:none !important}</style></noscript>
+</head>
+<body data-page="home">
 
+  <!-- 顶部黏土导航 -->
+  <nav class="nav">
+    <a class="nav-logo" href="index.html">
+      <span class="ava">🐟</span><span class="name">小黑鱼</span>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link" data-nav="home" href="index.html">首页</a>
+      <a class="nav-link" data-nav="works" href="works.html">作品</a>
+      <a class="nav-link" data-nav="games" href="games.html">游戏区</a>
+      <a class="nav-link" href="https://space.bilibili.com/567414097" target="_blank" rel="noopener">B站</a>
     </div>
-    <div style="height: 120px; background-color: #f5f5f5; border: 5px solid #eee; text-align:center;">
-      <p>我的网站</p>
-      <a href="https://space.bilibili.com/567414097" target="_blank">bilibili个人主页</a>
+  </nav>
+
+  <!-- ============ 首屏：3D 黏土小黑鱼 ============ -->
+  <header class="hero">
+    <div class="hero-text">
+      <span class="badge butter pop">🐟 欢迎来我的手作小窝</span>
+      <h1 class="pop" style="--d:.06s">你好，我是<br><span class="name">OoBlackFishoO</span></h1>
+      <p class="intro pop" style="--d:.12s">
+        一条用代码<b>捏黏土</b>的小黑鱼。<br>
+        在这里<b>玩</b>我做的网页小游戏，<b>翻</b>我的代码作品，<b>看</b>我在B站的日常。
+      </p>
+      <div class="hero-cta pop" style="--d:.18s">
+        <a class="clay-btn" href="games.html">🎮 去游戏区</a>
+        <a class="clay-btn ghost" href="works.html">🧶 看看作品</a>
+      </div>
+    </div>
+
+    <div class="hero-stage pop" id="hero-stage" style="--d:.1s">
+      <canvas id="fish-canvas"></canvas>
+      <div class="fish-say">咕噜咕噜~</div>
+      <div class="stage-hint">🖐 拖一拖转个圈 · 戳一戳会吐泡泡</div>
+    </div>
+  </header>
+
+  <!-- ============ 精选作品 ============ -->
+  <section class="section">
+    <div class="section-head">
+      <span class="badge coral">🧶 精选作品</span>
+      <h2>最近捏的东西</h2>
+      <a class="sub" href="works.html">全部作品 →</a>
+    </div>
+
+    <div class="cards">
+      <a class="clay-card pop" href="works.html">
+        <div class="card-top">
+          <span class="clay-icon" style="background:#FFE3D5">🧶</span>
+          <h3>这个网站本身</h3>
+          <span class="badge mint">进行中</span>
+        </div>
+        <p class="desc">从一张白板重捏的黏土小窝：3D 黏土鱼、物理微动效，还有你正在看的每个像素。</p>
+        <div class="chips"><span class="chip">Three.js</span><span class="chip">CSS</span><span class="chip">物理动效</span></div>
+      </a>
+
+      <a class="clay-card pop" href="https://github.com/OoBlackFishoO/SeisView" target="_blank" rel="noopener" style="--d:.08s">
+        <div class="card-top">
+          <span class="clay-icon" style="background:#DFF5E9">🌍</span>
+          <h3>SeisView</h3>
+          <span class="badge sky">持续更新</span>
+        </div>
+        <p class="desc">3D 地震数据可视化工具：读取 .sgy / .su / .mat / .npy，格式互转，导出论文级 png/svg 图件，还能多数据对比观察。</p>
+        <div class="chips"><span class="chip">Python</span><span class="chip">segyio</span><span class="chip">地球物理</span></div>
+      </a>
+
+      <div class="clay-card placeholder pop" style="--d:.16s">
+        <span class="q">🪄</span>
+        <h3>下一个作品</h3>
+        <p class="desc">复制一张卡片、改三行字，这里就是新展位</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 游戏区预告 ============ -->
+  <section class="section">
+    <div class="section-head">
+      <span class="badge mint">🎮 游戏区</span>
+      <h2>能玩的地方</h2>
+      <a class="sub" href="games.html">进入游戏区 →</a>
+    </div>
+
+    <div class="cards">
+      <a class="clay-card tint-sky pop" href="games.html">
+        <div class="card-top">
+          <span class="clay-icon" style="background:#fff">🫧</span>
+          <span class="badge coral">NEW</span>
+        </div>
+        <h3>黏土泡泡 · 内置小游戏</h3>
+        <p class="desc">掉下来的泡泡带物理引擎，点爆得分；按一下"关重力"，它们就飘成太空泡泡。</p>
+        <div class="chips"><span class="chip">物理</span><span class="chip">解压</span><span class="chip">30 秒上头</span></div>
+      </a>
+
+      <a class="clay-card tint-lilac pop" href="games/beast-chess.html" style="--d:.08s">
+        <div class="card-top">
+          <span class="clay-icon" style="background:#fff">🦁</span>
+          <h3>暗翻兽王棋</h3>
+          <span class="badge butter">新游戏</span>
+        </div>
+        <p class="desc">自己设计规则的暗棋：动物军团大吃小，小老鼠专克兽王。拉个朋友同屏来下一局？</p>
+        <div class="chips"><span class="chip">棋类</span><span class="chip">同屏双人</span><span class="chip">自制规则</span></div>
+      </a>
+
+      <div class="clay-card placeholder pop" style="--d:.16s">
+        <span class="q">✨</span>
+        <h3>再下一个</h3>
+        <p class="desc">黏土小窝永远给新游戏留位置</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ B站 ============ -->
+  <section class="section">
+    <div class="section-head">
+      <span class="badge sky">📺 B站日常</span>
+      <h2>来B站找我玩</h2>
+    </div>
+
+    <div class="clay-card pop">
+      <div class="bili-card">
+        <div class="left">
+          <img class="bili-ava" src="images/logo.jpg" alt="OoBlackFishoO 的头像">
+        </div>
+        <div>
+          <h3 style="font-size:24px">OoBlackFishoO</h3>
+          <p class="desc">在B站记录学习和折腾的日常：写代码、捏网站、偶尔发点离谱小玩意。</p>
+          <div class="chips">
+            <span class="chip">🎥 视频日常</span><span class="chip">🧑‍💻 学习记录</span><span class="chip">🐟 小黑鱼本鱼</span>
+          </div>
+          <div style="margin-top:20px">
+            <a class="clay-btn" href="https://space.bilibili.com/567414097" target="_blank" rel="noopener">
+              📺 去 B 站看看
+            </a>
+          </div>
+        </div>
       </div>
 
-  </body>
+      <!-- 最新视频：三块占位。想放视频时，把B站"分享 → 嵌入代码"的 <iframe> 粘进对应槽里即可 -->
+      <div class="bili-videos">
+        <div class="video-slot">
+          <!-- 示例：<iframe src="//player.bilibili.com/player.html?bvid=XXXX" scrolling="no"></iframe> -->
+        </div>
+        <div class="video-slot"></div>
+        <div class="video-slot"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 页脚 ============ -->
+  <footer class="footer">
+    <svg class="footer-wave" viewBox="0 0 1440 46" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0,46 C240,6 480,6 720,26 C960,46 1200,10 1440,30 L1440,46 Z" fill="#F3E3CC"/>
+    </svg>
+    <div class="footer-inner">
+      <div class="footer-logo" title="捏我试试">
+        <span class="ava">🐟</span>
+        <span>小黑鱼的手作小窝</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/OoBlackFishoO" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://space.bilibili.com/567414097" target="_blank" rel="noopener">Bilibili</a>
+        <a href="works.html">作品</a>
+        <a href="games.html">游戏区</a>
+      </div>
+      <p class="footer-copy">© 2026 OoBlackFishoO · 全站黏土手捏，无一像素工业化量产</p>
+    </div>
+  </footer>
+
+  <script src="js/clay.js"></script>
+  <script type="module" src="js/fish3d.js"></script>
+  <script>
+    /* 如果 3D 模块加载失败（极旧浏览器），显示后备大鱼 */
+    setTimeout(function () {
+      if (!window.__fish3d_ok) {
+        var s = document.getElementById("hero-stage");
+        if (s && !s.querySelector(".fish-fallback")) {
+          s.classList.add("no3d");
+          var f = document.createElement("div");
+          f.className = "fish-fallback";
+          f.textContent = "🐟";
+          s.appendChild(f);
+        }
+      }
+    }, 3500);
+  </script>
+</body>
 </html>
