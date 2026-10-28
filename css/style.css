@@ -418,7 +418,7 @@ a.clay-card:hover { transform: translateY(-6px); box-shadow: var(--clay-shadow-h
   touch-action: manipulation;
 }
 
-.game-wrap canvas { display: block; width: 100%; }
+.game-wrap canvas { display: block; width: 100%; touch-action: none; }
 
 .game-hud {
   position: absolute;
@@ -528,6 +528,12 @@ a.clay-card:hover { transform: translateY(-6px); box-shadow: var(--clay-shadow-h
 .footer-links a:hover { transform: translateY(-3px); color: var(--ink); }
 
 .footer-copy { color: var(--ink-soft); font-size: 13px; }
+
+/* 页脚贴底：内容不足一屏时也不让页脚下方露出一条空带 */
+body { min-height: 100vh; display: flex; flex-direction: column; }
+/* flex 子项的 margin:auto 会吃掉横向拉伸，这里显式给满宽再由 max-width 收住 */
+body > .section, body > .hero { width: 100%; }
+.footer { margin-top: auto; }
 
 /* ---------- 进场动画 ---------- */
 .pop { opacity: 0; transform: translateY(22px) scale(.92); }

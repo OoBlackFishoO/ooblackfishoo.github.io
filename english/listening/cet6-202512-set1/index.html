@@ -7,17 +7,35 @@
 <link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="stylesheet" href="../../../css/style.css">
 <style>
-/* ============ 听力练习页（v4）：正文为主，设置收进浮动球 ============ */
-.wrap{max-width:860px;margin:0 auto;padding:26px 22px 110px}
+/* ============ 听力练习页（v5）：正文为主；顶部常驻翻页，底部唯一播放坞 ============ */
+:root{--dock-h:78px}
+body{min-height:100vh;display:flex;flex-direction:column}
+.wrap{width:100%;max-width:860px;margin:0 auto;padding:26px 22px calc(var(--dock-h) + 24px);flex:1 0 auto}
 
-/* ---- 顶部细栏 ---- */
-.exbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-.exbar .ttl{font-size:clamp(18px,2.6vw,22px);font-weight:900;margin:0;line-height:1.35}
-.exbar .meta{font-size:12.5px;font-weight:700;color:var(--ink-soft)}
-.exbar .pgn{margin-left:auto;font-size:13px;font-weight:900;color:var(--ink-soft);white-space:nowrap;padding:4px 12px;border-radius:999px;background:var(--white);box-shadow:var(--clay-in-light),var(--clay-in-dark)}
+/* ---- 顶部细栏（吸顶，翻页常驻） ---- */
+.exbar{position:sticky;top:0;z-index:55;display:flex;align-items:center;gap:8px 10px;flex-wrap:wrap;
+  margin:0 -22px 14px;padding:10px 22px;background:var(--bg);
+  box-shadow:0 12px 18px -20px rgba(93,63,43,.4)}
+.exbar .ttl{flex:1;min-width:0;font-size:clamp(17px,2.4vw,21px);font-weight:900;margin:0;line-height:1.3;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.exbar .meta{flex-basis:100%;font-size:12.5px;font-weight:700;color:var(--ink-soft);margin-top:-4px}
+.pgnav{position:relative;display:flex;align-items:center;gap:2px;flex:none;padding:3px;border-radius:999px;
+  background:var(--white);box-shadow:2px 3px 8px rgba(93,63,43,.12),var(--clay-in-light),var(--clay-in-dark)}
+.pgnav .pg{min-width:30px;height:30px;padding:0 8px;font-size:15px;background:none;box-shadow:none}
+.pgnav .pg:hover{background:var(--bg);transform:none}
+.pgnav .pgnum{min-width:auto;padding:0 7px;font-size:12.5px;color:var(--ink);font-variant-numeric:tabular-nums}
+.pgpop{position:absolute;top:calc(100% + 8px);right:0;width:250px;max-height:min(58vh,320px);overflow:auto;
+  display:grid;grid-template-columns:repeat(6,1fr);gap:5px;
+  padding:10px;border-radius:16px;background:var(--white);box-shadow:0 16px 34px rgba(93,63,43,.22),var(--clay-in-light)}
+.pgpop[hidden]{display:none}
+.pgpop .pg{min-width:0;height:30px;font-size:12px;background:var(--bg);box-shadow:none;color:var(--ink-soft)}
+.pgpop .pg:hover{background:var(--butter);transform:none}
+.pgpop .pg.on{background:var(--coral);color:#fff}
 
-/* ---- 正文卡 ---- */
-.paper{padding:18px 22px}
+/* ---- 正文卡（带进场：从听力区点进来时轻轻浮现） ---- */
+.paper{padding:18px 22px;animation:rise .55s var(--spring) .04s backwards}
+.actionbar{animation:rise .55s var(--spring) .12s backwards}
+@keyframes rise{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
 .ppage[hidden]{display:none}
 .ppage{animation:pagein .35s var(--spring)}
 @keyframes pagein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
@@ -57,20 +75,16 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
   font-weight:900;font-size:13.5px;margin-left:auto;
   box-shadow:var(--clay-in-light),var(--clay-in-dark),3px 5px 10px rgba(93,63,43,.15)}
 
-/* ---- 翻页（窗口 + 省略号） ---- */
-.pager{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin:16px 0 4px}
+/* ---- 翻页按钮底座（顶部页码与数字弹层共用） ---- */
 .pg{min-width:36px;height:36px;padding:0 10px;border:0;border-radius:999px;background:var(--white);
   color:var(--ink-soft);font-family:var(--font);font-size:13px;font-weight:900;cursor:pointer;
   box-shadow:2px 4px 9px rgba(93,63,43,.12),var(--clay-in-light),var(--clay-in-dark);
   transition:transform .18s var(--spring),background .18s,color .18s}
-.pg:hover{transform:translateY(-2px)}
 .pg:active{transform:scale(.94)}
-.pg.on{background:var(--coral);color:#fff}
 .pg:disabled{opacity:.4;cursor:default;transform:none}
-.pg.gap{background:none;box-shadow:none;cursor:default;color:var(--ink-soft)}
 
 /* ---- 浮动设置球 ---- */
-.fab{position:fixed;right:16px;bottom:92px;z-index:70}
+.fab{position:fixed;right:16px;bottom:calc(var(--dock-h) + 14px);z-index:70}
 .fab-btn{position:relative;width:48px;height:48px;border:0;border-radius:50%;background:var(--white);
   color:var(--ink);font-size:20px;cursor:pointer;box-shadow:var(--clay-shadow),var(--clay-in-light),var(--clay-in-dark);
   transition:transform .2s var(--spring)}
@@ -102,29 +116,81 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
   font-family:var(--font);font-size:12px;font-weight:800;color:var(--ink);text-align:center;box-shadow:var(--clay-in-light)}
 .fp-row input[type=number]:disabled{opacity:.45}
 
-/* ---- 页底：播放与进度卡片 ---- */
-.toolcard{margin-top:22px;padding:16px 18px}
-.tc-head{font-size:14px;font-weight:900;margin-bottom:10px}
-.tc-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px}
-.tc-row+.tc-row{margin-top:12px;padding-top:12px;border-top:1px dashed rgba(93,63,43,.18)}
-.tc-time{font-size:12.5px;font-weight:800;color:var(--ink-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
-.tc-rate{font-size:12px;font-weight:900;color:var(--ink-soft)}
-.tc-marks{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
-.tc-row[hidden]{display:none}
-.tc-row.markform{gap:8px}
-.tc-row.markform .marktime{font-weight:900;color:var(--ink-soft);white-space:nowrap}
-.tc-row.markform input[type=text]{flex:1;min-width:130px;border:0;border-radius:999px;padding:6px 13px;
+/* ---- 底部播放坞（唯一播放入口） ---- */
+.dock{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:65;
+  width:min(620px,calc(100vw - 20px));padding:8px 12px;border-radius:22px;background:var(--white);
+  box-shadow:var(--clay-shadow),var(--clay-in-light),var(--clay-in-dark);
+  animation:dockin .55s var(--spring) .16s backwards}
+@keyframes dockin{from{opacity:0;transform:translateX(-50%) translateY(18px)}to{opacity:1;transform:translateX(-50%)}}
+.dock-row{display:flex;align-items:center;gap:8px}
+.dock-track{position:relative;flex:1;min-width:64px}
+.dock-time{display:flex;align-items:center;gap:3px;font-size:11px;font-weight:800;line-height:1;
+  color:var(--ink-soft);font-variant-numeric:tabular-nums;margin-bottom:2px}
+.dock-time .now{color:var(--ink)}
+.dock-time .sep{opacity:.45}
+.dock-seek{position:relative;height:16px}
+.dock-seek::before{content:"";position:absolute;left:0;right:0;top:50%;height:4px;margin-top:-2px;
+  border-radius:2px;background:rgba(93,63,43,.16);pointer-events:none}
+.dock-fill{position:absolute;left:0;top:50%;height:4px;margin-top:-2px;border-radius:2px;
+  background:var(--coral);width:0;pointer-events:none}
+#seek{position:relative;display:block;width:100%;height:16px;margin:0;appearance:none;background:transparent;cursor:pointer}
+#seek::-webkit-slider-runnable-track{background:transparent;height:16px}
+#seek::-webkit-slider-thumb{appearance:none;width:12px;height:12px;margin-top:2px;border-radius:50%;background:var(--coral);
+  box-shadow:var(--clay-in-light),1px 2px 5px rgba(93,63,43,.3)}
+#seek::-moz-range-track{background:transparent;height:16px}
+#seek::-moz-range-thumb{width:12px;height:12px;border:0;border-radius:50%;background:var(--coral);
+  box-shadow:1px 2px 5px rgba(93,63,43,.3)}
+.dock-pins{position:absolute;left:0;right:0;bottom:0;height:6px;pointer-events:none}
+.dp-pin{position:absolute;bottom:0;width:5px;height:5px;padding:0;border:0;border-radius:50%;
+  background:rgba(93,63,43,.4);transform:translateX(-50%);cursor:pointer;pointer-events:auto}
+.dp-pin:hover,.dp-pin:focus-visible{background:var(--coral);outline:0}
+.mb-main{width:42px;height:42px;flex:none;border:0;border-radius:50%;background:var(--coral);color:#fff;
+  font-size:17px;line-height:1;cursor:pointer;box-shadow:var(--clay-in-light),var(--clay-in-dark),2px 4px 10px rgba(93,63,43,.2);
+  transition:transform .18s var(--spring),background .18s}
+.mb-main:hover{transform:translateY(-1px)}
+.mb-main:active{transform:scale(.9)}
+.mb-nav{width:30px;height:30px;flex:none;border:0;border-radius:50%;background:var(--bg);color:var(--ink-soft);
+  font-size:13px;line-height:1;cursor:pointer;box-shadow:var(--clay-in-light),var(--clay-in-dark);
+  transition:transform .18s var(--spring),color .18s}
+.mb-nav:hover{color:var(--ink);transform:translateY(-1px)}
+.mb-nav:active{transform:scale(.9)}
+.dock-replay{flex:none;display:inline-flex;align-items:center;gap:3px;padding:6px 9px;border:0;border-radius:999px;
+  background:var(--bg);font-family:var(--font);font-size:11.5px;font-weight:900;color:var(--ink-soft);cursor:pointer;
+  box-shadow:var(--clay-in-light),var(--clay-in-dark);transition:background .16s,color .16s,transform .16s var(--spring)}
+.dock-replay:hover{background:var(--butter);color:var(--ink)}
+.dock-replay:active{transform:scale(.94)}
+.dock-rate{flex:none;padding:6px 8px;border:0;border-radius:999px;background:var(--bg);
+  font-family:var(--font);font-size:11.5px;font-weight:900;color:var(--ink-soft);cursor:pointer;
+  box-shadow:var(--clay-in-light),var(--clay-in-dark);transition:background .16s,color .16s}
+.dock-rate:hover{background:var(--butter);color:var(--ink)}
+.dock-more{flex:none;width:30px;height:30px;border:0;border-radius:50%;background:var(--bg);
+  font-family:var(--font);font-size:17px;font-weight:900;line-height:1;color:var(--ink-soft);cursor:pointer;
+  box-shadow:var(--clay-in-light),var(--clay-in-dark);transition:background .16s,color .16s}
+.dock-more:hover{background:var(--butter);color:var(--ink)}
+.dock-more[aria-expanded="true"]{background:var(--coral);color:#fff}
+.dock-panel{position:absolute;left:0;right:0;bottom:calc(100% + 10px);display:flex;flex-direction:column;gap:10px;
+  padding:14px 16px;border-radius:20px;background:var(--white);
+  box-shadow:0 18px 40px rgba(93,63,43,.26),var(--clay-in-light)}
+.dock-panel[hidden]{display:none}
+.dp-head{display:flex;align-items:center;justify-content:space-between;font-size:13.5px;font-weight:900}
+.dp-close{border:0;background:none;padding:0 2px;font-size:18px;line-height:1;color:var(--ink-soft);cursor:pointer}
+.dp-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px}
+.tc-marks{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.dp-form{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.dp-form[hidden]{display:none}
+.dp-form .marktime{font-weight:900;color:var(--ink-soft);white-space:nowrap;font-size:12px}
+.dp-form input[type=text]{flex:1;min-width:120px;border:0;border-radius:999px;padding:6px 13px;
   font-family:var(--font);font-size:12.5px;font-weight:800;color:var(--ink);
   background:var(--bg);box-shadow:var(--clay-in-light),inset 0 -2px 5px rgba(93,63,43,.12)}
-.tc-row.markform input[type=text]:focus{outline:0;background:var(--butter)}
-.tc-row.markform input[type=text]::placeholder{font-weight:700;color:var(--ink-soft);opacity:.75}
-#audio{display:none}
-#seek{flex:1;min-width:120px;height:10px;appearance:none;border-radius:999px;background:var(--bg);
-  box-shadow:inset 2px 2px 5px rgba(93,63,43,.14),inset -2px -2px 5px #fff;cursor:pointer}
-#seek::-webkit-slider-thumb{appearance:none;width:20px;height:20px;border-radius:50%;background:var(--coral);
-  box-shadow:var(--clay-in-light),2px 3px 7px rgba(93,63,43,.25)}
-#seek::-moz-range-thumb{width:20px;height:20px;border:0;border-radius:50%;background:var(--coral);
-  box-shadow:2px 3px 7px rgba(93,63,43,.25)}
+.dp-form input[type=text]:focus{outline:0;background:var(--butter)}
+.dp-form input[type=text]::placeholder{font-weight:700;color:var(--ink-soft);opacity:.75}
+.dp-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-top:10px;
+  border-top:1px dashed rgba(93,63,43,.18);font-size:12px}
+.dp-foot .hint{margin-right:auto}
+.dp-link{border:0;background:none;padding:0;font-family:var(--font);font-size:12px;font-weight:900;
+  color:var(--ink-soft);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.dp-link:hover{color:var(--ink)}
+.dp-link.danger{color:var(--coral-deep)}
 .hint{font-size:12.5px;color:var(--ink-soft)}
 .mark{display:inline-flex;align-items:center;gap:3px}
 .markbtn{border:0;border-radius:999px;padding:5px 11px;font-family:var(--font);font-size:12px;font-weight:800;
@@ -134,40 +200,41 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
 .markbtn:hover{transform:translateY(-1px);background:var(--butter)}
 .markbtn:active{transform:scale(.94)}
 .mark .del{cursor:pointer;color:var(--coral-deep);font-size:15px;font-weight:900;padding:0 2px;line-height:1}
-
-/* ---- 吸底迷你播放条 ---- */
-.minibar{position:fixed;left:50%;bottom:14px;transform:translate(-50%,140%);z-index:60;
-  display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--white);border-radius:999px;
-  box-shadow:var(--clay-shadow),var(--clay-in-light),var(--clay-in-dark);
-  transition:transform .35s var(--spring);max-width:calc(100% - 20px)}
-.minibar.show{transform:translate(-50%,0)}
-.minibar .mb-time{font-size:12.5px;font-weight:800;color:var(--ink-soft);font-variant-numeric:tabular-nums}
-.minibar .mb-page{font-size:12.5px;font-weight:800;color:var(--ink)}
-.mb-main{width:44px;height:44px;flex:none;border:0;border-radius:50%;background:var(--coral);color:#fff;
-  font-size:17px;line-height:1;cursor:pointer;box-shadow:var(--clay-in-light),var(--clay-in-dark),2px 4px 10px rgba(93,63,43,.2);
-  transition:transform .18s var(--spring),background .18s}
-.mb-main:hover{transform:translateY(-1px)}
-.mb-main:active{transform:scale(.9)}
-.mb-main.small{width:36px;height:36px;font-size:15px}
-.mb-nav{width:34px;height:34px;flex:none;border:0;border-radius:50%;background:var(--bg);color:var(--ink-soft);
-  font-size:14px;line-height:1;cursor:pointer;box-shadow:var(--clay-in-light),var(--clay-in-dark);
-  transition:transform .18s var(--spring),color .18s}
-.mb-nav:hover{color:var(--ink);transform:translateY(-1px)}
-.mb-nav:active{transform:scale(.9)}
+#audio{display:none}
 
 /* ---- 轻提示 ---- */
-.toast{position:fixed;left:50%;bottom:158px;transform:translate(-50%,12px);z-index:90;
+.toast{position:fixed;left:50%;bottom:calc(var(--dock-h) + 30px);transform:translate(-50%,12px);z-index:90;
   background:var(--ink);color:var(--bg);font-size:13px;font-weight:800;padding:9px 18px;border-radius:999px;
   opacity:0;pointer-events:none;transition:opacity .2s,transform .25s var(--spring)}
 .toast.show{opacity:.94;transform:translate(-50%,0)}
 
+/* 页脚贴底：内容短时不再在页脚下方留一条空带；底部给播放坞留安全区 */
+.footer{margin-top:auto}
+.footer-inner{padding-bottom:calc(var(--dock-h) + 16px)}
+
 @media (max-width:600px){
-  .wrap{padding:18px 14px 108px}
+  .wrap{padding:18px 14px calc(var(--dock-h) + 24px)}
+  .exbar{margin:0 -14px 12px;padding:8px 14px}
+  /* 窄屏：标题跟返回键占第一行（完整可读），页码和统计一起落到第二行 */
+  .exbar .ttl{font-size:16px;min-width:180px}
+  .pgnav{order:2}
+  .pgpop{left:0;right:auto}
+  .exbar .meta{order:3;flex:1 1 auto;margin-top:0}
   .paper{padding:12px 14px}
   .text{font-size:16.5px;line-height:2}
   .pg{min-width:32px;height:32px;font-size:12px}
   .score-chip{margin-left:0}
-  .fab{bottom:84px;right:12px}
+  :root{--dock-h:68px}
+  .dock{bottom:8px;padding:6px 9px;border-radius:18px}
+  .dock-row{gap:6px}
+  .dock-rate{display:none}
+  .dock-replay{padding:6px 8px}
+  .fab{bottom:calc(var(--dock-h) + 10px);right:12px}
+}
+@media (max-width:380px){
+  .mb-nav,.dock-more{width:28px;height:28px}
+  .dock-replay{padding:6px 7px;font-size:11px}
+  .dock-track{min-width:40px}
 }
 @media (min-width:1040px){
   .fab{top:50%;bottom:auto;right:calc(50vw - 500px);transform:translateY(-50%)}
@@ -175,8 +242,8 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
   .fab.open .fab-panel{transform:translateY(-50%)}
 }
 @media (prefers-reduced-motion: reduce){
-  .ppage{animation:none}
-  .fab-panel,.drawer,.toast,.minibar{transition:none}
+  .paper,.actionbar,.ppage,.dock{animation:none}
+  .fab-panel,.toast,.dock-panel,.pgpop{transition:none}
 }
 </style>
 </head>
@@ -186,52 +253,22 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
   <div class="exbar">
     <a class="clay-btn ghost small" href="../../listening.html">← 回听力区</a>
     <h1 class="ttl" id="ex-title">听力练习</h1>
+    <div class="pgnav">
+      <button class="pg" id="prevPage" type="button" title="上一页">‹</button>
+      <button class="pg pgnum" id="pageno" type="button" aria-haspopup="true" aria-expanded="false" title="跳到任意页">1 / 1</button>
+      <button class="pg" id="nextPage" type="button" title="下一页">›</button>
+      <div class="pgpop" id="pgnums" hidden></div>
+    </div>
     <span class="meta" id="ex-meta"></span>
-    <span class="pgn" id="pageno">第 1 / 1 页</span>
   </div>
 
-  <div class="clay-card paper" id="pages"></div>
+  <div class="clay-card paper" id="pages" data-no-tilt></div>
 
   <div class="actionbar">
     <button class="clay-btn" id="check">✅ 判分</button>
     <button class="clay-btn ghost small" id="show">👀 看答案</button>
     <button class="clay-btn ghost small" id="clear">🧽 清空</button>
     <span class="score-chip" id="score" style="display:none"></span>
-  </div>
-
-  <div class="pager">
-    <button class="pg" id="prevPage" title="上一页">‹</button>
-    <span id="pgnums" style="display:contents"></span>
-    <button class="pg" id="nextPage" title="下一页">›</button>
-  </div>
-
-  <div class="clay-card toolcard">
-    <div class="tc-head">🎧 播放与进度</div>
-    <div class="tc-row">
-      <button class="mb-main small" id="tcPlay" type="button" title="播放 / 暂停">▶</button>
-      <span class="tc-time" id="tcTime">0:00 / 0:00</span>
-      <button class="opt" id="seekToggle" type="button">进度条</button>
-      <span class="tc-rate" id="tcRate">1.0x</span>
-    </div>
-    <div class="tc-row" id="seekRow" hidden>
-      <input type="range" id="seek" min="0" max="1000" step="1" value="0" aria-label="播放进度">
-    </div>
-    <div class="tc-row">
-      <button class="clay-btn ghost small" id="addMark" type="button">📍 打跳转点</button>
-      <span id="marks" class="tc-marks"></span>
-    </div>
-    <div class="tc-row markform" id="markForm" hidden>
-      <span class="marktime" id="markTime"></span>
-      <input type="text" id="markLabel" placeholder="起个名字，如：第 3 段开始">
-      <button class="clay-btn ghost small" id="markCancel" type="button">取消</button>
-      <button class="clay-btn small" id="markOk" type="button">保存</button>
-    </div>
-    <div class="tc-row">
-      <button class="clay-btn ghost small" id="saveNow" type="button">💾 保存进度</button>
-      <button class="clay-btn ghost small" id="clearProg" type="button">🧹 清除进度</button>
-      <span class="hint" id="progInfo"></span>
-    </div>
-    <audio id="audio" preload="metadata"></audio>
   </div>
 </div>
 
@@ -257,10 +294,7 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
         <button class="opt" type="button" data-seg="full">无限制</button>
         <button class="opt" type="button" data-seg="pause">按停顿</button>
         <button class="opt" type="button" data-seg="1">逐句</button>
-        <button class="opt" type="button" data-seg="2">2 句</button>
-        <button class="opt" type="button" data-seg="3">3 句</button>
         <button class="opt" type="button" data-seg="4">4 句</button>
-        <button class="opt" type="button" data-seg="6">6 句</button>
         <button class="opt" type="button" data-seg="8">8 句</button>
         <button class="opt" type="button" data-seg="12">12 句</button>
       </div>
@@ -283,6 +317,7 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
         <button class="opt" type="button" data-blank="low">少</button>
         <button class="opt" type="button" data-blank="mid">中</button>
         <button class="opt" type="button" data-blank="high">多</button>
+        <button class="opt" type="button" data-blank="max">极多</button>
       </div>
     </div>
 
@@ -306,23 +341,49 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
         <div class="fp-chips"><button class="opt" type="button" id="reblank">🔁 重新挖空</button></div>
       </div>
     </div>
-
-    <div class="fp-group">
-      <div class="fp-chips"><button class="opt" type="button" id="openPlayer">🎧 全文播放器 / 跳转点 / 进度</button></div>
-    </div>
   </div>
 
   <button class="fab-btn" id="fabBtn" type="button" aria-expanded="false" aria-controls="fabPanel" title="练习设置">⚙</button>
 </div>
 
-<!-- 吸底迷你播放条 -->
-<div class="minibar" id="minibar">
-  <button class="mb-nav" id="mb-prev" type="button" title="上一句">⏮</button>
-  <button class="mb-main" id="mb-play" type="button" title="播放 / 暂停">▶</button>
-  <button class="mb-nav" id="mb-next" type="button" title="下一句">⏭</button>
-  <span class="mb-time" id="mb-time">0:00</span>
-  <button class="clay-btn ghost small" id="mb-replay" type="button">↻ 本句</button>
-  <span class="mb-page" id="mb-page"></span>
+<!-- 底部播放坞：全页唯一播放入口 -->
+<div class="dock" id="dock">
+  <div class="dock-panel" id="dockPanel" hidden>
+    <div class="dp-head"><span>📍 跳转点与进度</span><button class="dp-close" id="dockClose" type="button" title="收起">×</button></div>
+    <div class="dp-row">
+      <button class="markbtn" id="addMark" type="button">📍 在当前位置打点</button>
+      <span id="marks" class="tc-marks"></span>
+    </div>
+    <div class="dp-form" id="markForm" hidden>
+      <span class="marktime" id="markTime"></span>
+      <input type="text" id="markLabel" placeholder="起个名字，如：第 3 段开始">
+      <button class="dp-link" id="markCancel" type="button">取消</button>
+      <button class="clay-btn small" id="markOk" type="button">保存</button>
+    </div>
+    <div class="dp-foot">
+      <span class="hint" id="progInfo">自动保存：播放位置 · 页码 · 答案 · 跳转点</span>
+      <button class="dp-link" id="saveNow" type="button">立即保存</button>
+      <button class="dp-link danger" id="clearProg" type="button">清除进度</button>
+    </div>
+  </div>
+
+  <div class="dock-row">
+    <button class="mb-nav" id="mb-prev" type="button" title="上一句">⏮</button>
+    <button class="mb-main" id="mb-play" type="button" title="播放 / 暂停">▶</button>
+    <button class="mb-nav" id="mb-next" type="button" title="下一句">⏭</button>
+    <button class="dock-replay" id="mb-replay" type="button" title="从本句 / 本段开头重播"><span>↻</span><span id="mb-replay-t">本句</span></button>
+    <div class="dock-track">
+      <div class="dock-time"><span class="now" id="mb-time">0:00</span><span class="sep">/</span><span id="tcTime">0:00</span></div>
+      <div class="dock-seek">
+        <span class="dock-fill" id="seekFill"></span>
+        <input type="range" id="seek" min="0" max="1000" step="1" value="0" aria-label="播放进度">
+        <div class="dock-pins" id="pins"></div>
+      </div>
+    </div>
+    <button class="dock-rate" id="tcRate" type="button" title="切换播放速度">1.0x</button>
+    <button class="dock-more" id="dockMore" type="button" aria-expanded="false" aria-controls="dockPanel" title="跳转点与进度">⋯</button>
+  </div>
+  <audio id="audio" preload="metadata"></audio>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -334,8 +395,11 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
   <div class="footer-inner">
     <div class="footer-logo"><span class="ava">🐟</span><span>小黑鱼的手作小窝</span></div>
     <div class="footer-links">
+      <a href="https://github.com/OoBlackFishoO" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://space.bilibili.com/567414097" target="_blank" rel="noopener">Bilibili</a>
       <a href="../../../index.html">首页</a>
       <a href="../../../works.html">作品</a>
+      <a href="../../../games.html">游戏区</a>
       <a href="../../../english.html">英语</a>
     </div>
     <p class="footer-copy">© 2026 OoBlackFishoO</p>
@@ -374,8 +438,8 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
 
   /* 全站共享的设置：page = 每页放什么，seg = 段内怎么切 */
   var SET = { page: "q", seg: "full", rate: 1, follow: true, blank: "mid", mode: "random", skip: true, everyN: 7 };
-  var DENSITY = { low: 25, mid: 45, high: 70 };
-  var DENSITY_LABEL = { low: "少（25%）", mid: "中（45%）", high: "多（70%）" };
+  var DENSITY = { low: 25, mid: 45, high: 70, max: 95 };
+  var DENSITY_LABEL = { low: "少（25%）", mid: "中（45%）", high: "多（70%）", max: "极多（95%，接近默写）" };
 
   /* ---------- 工具 ---------- */
   function norm(w) { return w.toLowerCase().replace(/[^a-z0-9']/g, ""); }
@@ -434,6 +498,8 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
       if (!raw) return;
       var o = JSON.parse(raw);
       for (var k in SET) { if (o[k] !== undefined && o[k] !== null) SET[k] = o[k]; }
+      /* 已下线的段长（2 / 3 / 6 句）回落到 4 句，免得设置里没有任何一项高亮 */
+      if (["2", "3", "6"].indexOf(String(SET.seg)) >= 0) SET.seg = "4";
     } catch (e) {}
   }
   function saveSettings() {
@@ -652,65 +718,50 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
     showPage(page, false);
   }
 
-  /* ---------- 翻页：窗口 + 省略号 ---------- */
-  function pageList(n, cur) {
-    var out = [], i;
-    if (n <= 7) { for (i = 0; i < n; i++) out.push(i); return out; }
-    var idx = [0, n - 1];
-    for (var d = -1; d <= 1; d++) {
-      var p = cur + d;
-      if (p >= 0 && p < n && idx.indexOf(p) < 0) idx.push(p);
-    }
-    idx.sort(function (a, b) { return a - b; });
-    var res = [];
-    idx.forEach(function (v, k) {
-      if (k > 0 && v - idx[k - 1] > 1) res.push(-1);
-      res.push(v);
-    });
-    return res;
-  }
+  /* ---------- 翻页：页码弹层（全部页号，超出高度可滚） ---------- */
   function renderPager() {
     var box = $("pgnums"); box.innerHTML = "";
-    pageList(NP, page).forEach(function (v) {
+    for (var v = 0; v < NP; v++) {
       var b = document.createElement("button");
       b.type = "button"; b.className = "pg";
-      if (v === -1) {
-        b.classList.add("gap"); b.textContent = "…"; b.disabled = true;
-      } else {
-        b.textContent = String(v + 1);
-        b.title = "第 " + (v + 1) + " 页";
-        if (v === page) b.classList.add("on");
-        b.addEventListener("click", (function (k) { return function () { showPage(k, true); }; })(v));
-      }
+      b.textContent = String(v + 1);
+      b.title = "第 " + (v + 1) + " 页";
+      if (v === page) b.classList.add("on");
+      b.addEventListener("click", (function (k) { return function () { showPage(k, true); closePop(); }; })(v));
       box.appendChild(b);
-    });
+    }
+    $("pageno").textContent = (page + 1) + " / " + NP;
+    $("pageno").title = "第 " + (page + 1) + " / " + NP + " 页 · 点这里跳到任意页";
     $("prevPage").disabled = page === 0;
     $("nextPage").disabled = page === NP - 1;
   }
 
-  /* 翻页不抢滚动：只有翻页按钮会跑出视口时才滚，且只滚到「刚好看见」 */
-  function keepPagerInView() {
-    var bar = document.querySelector(".pager");
-    if (!bar) return;
-    var r = bar.getBoundingClientRect(), vh = window.innerHeight, dy = 0;
-    if (r.bottom > vh - 12) dy = r.bottom - vh + 12;
-    else if (r.top < 12) dy = r.top - 12;
-    if (dy) window.scrollBy({ top: dy, behavior: reduce ? "auto" : "smooth" });
+  /* 页码弹层：点中间的「n / N」开合，点外面或按 Esc 收起 */
+  function closePop() {
+    $("pgnums").hidden = true;
+    $("pageno").setAttribute("aria-expanded", "false");
   }
+  function togglePop() {
+    var willOpen = $("pgnums").hidden;
+    $("pgnums").hidden = !willOpen;
+    $("pageno").setAttribute("aria-expanded", willOpen ? "true" : "false");
+  }
+  $("pageno").addEventListener("click", function (e) { e.stopPropagation(); togglePop(); });
+  $("pgnums").addEventListener("click", function (e) { e.stopPropagation(); });
+  document.addEventListener("click", function () { closePop(); });
 
-  function showPage(n, scroll) {
+  /* 翻页只换内容，不碰滚动位置：吸顶栏常驻，连续点也不会跳 */
+  function showPage(n, manual) {
     page = Math.max(0, Math.min(NP - 1, n));
     var pgs = document.querySelectorAll(".ppage");
     for (var i = 0; i < pgs.length; i++) pgs[i].hidden = i !== page;
     document.querySelectorAll(".srun.cur").forEach(function (el) { el.classList.remove("cur"); });
     document.querySelectorAll(".seg.looping").forEach(function (el) { el.classList.remove("looping"); });
     curSen = null; loopSeg = null;
-    $("pageno").textContent = "第 " + (page + 1) + " / " + NP + " 页";
-    $("mb-page").textContent = "第 " + (page + 1) + "/" + NP + " 页";
     var segMulti = PAGES[page].segs.some(function (g) { return g.sentences.length > 1; });
-    $("mb-replay").textContent = segMulti ? "↻ 本段" : "↻ 本句";
+    $("mb-replay-t").textContent = segMulti ? "本段" : "本句";
     renderPager();
-    if (scroll !== false) { holdPage = true; keepPagerInView(); }
+    if (manual !== false) holdPage = true;
     updateFollow(true);
     saveState(true);
   }
@@ -750,41 +801,44 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
     }
   }
 
-  /* 页底播放卡：自绘进度条 */
+  /* 播放坞：自绘细轨 + 时间 */
   var dragging = false;
   function dur() { return isFinite(audio.duration) && audio.duration > 0 ? audio.duration : totalDur; }
+  function paintSeek(p) { $("seekFill").style.width = (p / 10) + "%"; }
   function syncTransport() {
-    $("tcTime").textContent = fmt(audio.currentTime) + " / " + fmt(dur());
-    if (!dragging) $("seek").value = Math.round(audio.currentTime / Math.max(1, dur()) * 1000);
+    var d = dur();
+    $("tcTime").textContent = fmt(d);
+    $("mb-time").textContent = fmt(audio.currentTime);
+    if (!dragging) {
+      var p = Math.round(audio.currentTime / Math.max(1, d) * 1000);
+      $("seek").value = p;
+      paintSeek(p);
+    }
   }
   $("seek").addEventListener("pointerdown", function () { dragging = true; });
-  $("seek").addEventListener("pointerup", function () { dragging = false; });
-  $("seek").addEventListener("change", function () { dragging = false; });
+  $("seek").addEventListener("pointerup", function () { dragging = false; syncTransport(); });
+  $("seek").addEventListener("change", function () { dragging = false; syncTransport(); });
   $("seek").addEventListener("input", function () {
     var d = dur();
     if (!d) return;
     holdPage = false;
-    try { audio.currentTime = this.value / 1000 * d; } catch (e) {}
+    var p = Number(this.value) || 0;
+    try { audio.currentTime = p / 1000 * d; } catch (e) {}
+    $("mb-time").textContent = fmt(p / 1000 * d);
+    paintSeek(p);
   });
-  $("tcPlay").addEventListener("click", function () { $("mb-play").click(); });
-  $("seekToggle").addEventListener("click", function () {
-    var row = $("seekRow");
-    row.hidden = !row.hidden;
-    this.classList.toggle("on", !row.hidden);
-  });
-  audio.addEventListener("loadedmetadata", syncTransport);
+  audio.addEventListener("loadedmetadata", function () { syncTransport(); renderPins(); });
   audio.addEventListener("timeupdate", function () {
     if (loopSeg && !audio.paused && audio.currentTime >= loopSeg.end) { audio.currentTime = loopSeg.start; }
     updateFollow(false);
-    $("mb-time").textContent = fmt(audio.currentTime);
     syncTransport();
     if (!audio.paused && Date.now() - lastAuto > 8000) { lastAuto = Date.now(); saveState(true); }
   });
-  audio.addEventListener("play", function () { $("mb-play").textContent = "⏸"; $("tcPlay").textContent = "⏸"; });
-  audio.addEventListener("pause", function () { $("mb-play").textContent = "▶"; $("tcPlay").textContent = "▶"; saveState(true); });
+  audio.addEventListener("play", function () { $("mb-play").textContent = "⏸"; });
+  audio.addEventListener("pause", function () { $("mb-play").textContent = "▶"; saveState(true); });
   window.addEventListener("beforeunload", function () { saveState(true); });
 
-  /* ---------- 迷你播放条 ---------- */
+  /* ---------- 播放坞：播放 / 上一句 / 下一句 / 本句重播 ---------- */
   $("mb-play").addEventListener("click", function () {
     if (audio.paused) { loopSeg = null; holdPage = false; audio.play(); } else audio.pause();
   });
@@ -822,13 +876,37 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
   }
   $("mb-prev").addEventListener("click", function () { stepSen(-1); });
   $("mb-next").addEventListener("click", function () { stepSen(1); });
-  $("minibar").classList.add("show");
+
+  /* 倍速：点一下切下一档（完整档位在设置球里） */
+  var RATES = [0.5, 0.75, 1, 1.25, 1.5];
+  $("tcRate").addEventListener("click", function () {
+    var i = RATES.indexOf(Number(SET.rate));
+    if (i < 0) i = 2;
+    SET.rate = RATES[(i + 1) % RATES.length];
+    syncChips();
+    toast("播放速度 " + (Number(SET.rate) === 1 ? "1.0" : SET.rate) + "x");
+  });
+
+  /* 展开面板：跳转点 / 自动保存 / 清除进度 */
+  var dockPanel = $("dockPanel"), dockMore = $("dockMore");
+  function setDockPanel(open) {
+    dockPanel.hidden = !open;
+    dockMore.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) { setFab(false); renderMarks(); }
+  }
+  dockMore.addEventListener("click", function (e) { e.stopPropagation(); setDockPanel(dockPanel.hidden); });
+  dockPanel.addEventListener("click", function (e) { e.stopPropagation(); });
+  $("dockClose").addEventListener("click", function () { setDockPanel(false); });
+  document.addEventListener("click", function (e) {
+    if (!dockPanel.hidden && !dockPanel.contains(e.target)) setDockPanel(false);
+  });
 
   /* ---------- 浮动球 ---------- */
   var fab = $("fab"), fabBtn = $("fabBtn"), hideTimer = null;
   function setFab(open) {
     fab.classList.toggle("open", open);
     fabBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open && !dockPanel.hidden) setDockPanel(false);
   }
   fabBtn.addEventListener("click", function () { setFab(!fab.classList.contains("open")); });
   $("fpClose").addEventListener("click", function () { setFab(false); });
@@ -836,7 +914,9 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
   fab.addEventListener("pointerleave", function (e) {
     if (e.pointerType === "mouse") { hideTimer = setTimeout(function () { setFab(false); }, 280); }
   });
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") setFab(false); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") { setFab(false); closePop(); setDockPanel(false); }
+  });
   document.addEventListener("click", function (e) {
     if (!fab.contains(e.target) && fab.classList.contains("open")) setFab(false);
   });
@@ -914,40 +994,48 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
     this.textContent = box.hidden ? "高级 ›" : "收起 ‹";
   });
 
-  /* ---------- 页底播放卡片 ---------- */
-  $("openPlayer").addEventListener("click", function () {
-    setFab(false);
-    document.querySelector(".toolcard").scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
-  });
-
   /* ---------- 跳转点 ---------- */
+  function renderPins() {
+    var box = $("pins"); box.innerHTML = "";
+    var d = dur();
+    if (!d) return;
+    MARKS.forEach(function (m) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "dp-pin";
+      b.style.left = Math.max(0, Math.min(100, m.t / d * 100)) + "%";
+      b.title = "📍 " + fmt(m.t) + (m.label ? " " + m.label : "");
+      b.addEventListener("click", function (e) { e.stopPropagation(); seekPlay(m.t); });
+      box.appendChild(b);
+    });
+  }
   function renderMarks() {
     var box = $("marks"); box.innerHTML = "";
-    if (!MARKS.length) { box.innerHTML = '<span class="hint">还没有跳转点</span>'; return; }
-    MARKS.forEach(function (m, i) {
+    if (!MARKS.length) box.innerHTML = '<span class="hint">还没有跳转点</span>';
+    else MARKS.forEach(function (m, i) {
       var wrap = document.createElement("span"); wrap.className = "mark";
       var b = document.createElement("button"); b.className = "markbtn"; b.type = "button";
-      b.textContent = "📍 " + fmt(m.t) + " " + (m.label || "");
+      b.textContent = "📍 " + fmt(m.t) + (m.label ? " " + m.label : "");
       b.addEventListener("click", function () { seekPlay(m.t); });
       var del = document.createElement("span"); del.className = "del"; del.textContent = "×"; del.title = "删除";
       del.addEventListener("click", function () { MARKS.splice(i, 1); renderMarks(); saveState(true); });
       wrap.appendChild(b); wrap.appendChild(del); box.appendChild(wrap);
     });
+    renderPins();
   }
   $("addMark").addEventListener("click", function () {
     $("markTime").textContent = "⏱ " + fmt(audio.currentTime) + "（" + (page + 1) + "/" + NP + " 页）";
-    $("markLabel").value = fmt(audio.currentTime);
+    $("markLabel").value = "";
     $("markForm").hidden = false;
-    setTimeout(function () { $("markLabel").focus(); $("markLabel").select(); }, 60);
+    setTimeout(function () { $("markLabel").focus(); }, 60);
   });
   function closeMark() { $("markForm").hidden = true; }
   $("markCancel").addEventListener("click", closeMark);
   $("markLabel").addEventListener("keydown", function (e) {
     if (e.key === "Enter") $("markOk").click();
-    else if (e.key === "Escape") closeMark();
+    else if (e.key === "Escape") { e.stopPropagation(); closeMark(); }
   });
   $("markOk").addEventListener("click", function () {
-    var label = ($("markLabel").value || "").trim() || fmt(audio.currentTime);
+    var label = ($("markLabel").value || "").trim();
     MARKS.push({ t: Math.round(audio.currentTime * 100) / 100, label: label });
     MARKS.sort(function (a, b) { return a.t - b.t; });
     renderMarks(); saveState(false);
@@ -966,8 +1054,8 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
       localStorage.setItem(STORE_KEY, JSON.stringify({
         t: audio.currentTime, page: page, blanks: BLANKS, marks: MARKS, ans: collect()
       }));
-      if (!silent) $("progInfo").textContent = "已保存（" + fmt(audio.currentTime) + "）";
-    } catch (e) { if (!silent) $("progInfo").textContent = "无法保存进度"; }
+      $("progInfo").textContent = (silent ? "已自动保存 · " : "已保存 · ") + fmt(audio.currentTime);
+    } catch (e) { $("progInfo").textContent = "无法保存进度"; }
   }
   function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(function () { saveState(false); }, 700); }
   function applyAnswers(ans) {

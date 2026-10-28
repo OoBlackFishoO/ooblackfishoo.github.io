@@ -163,8 +163,6 @@
     .rules.open { display: block; }
     .rules b { color: var(--ink); }
     .rules li { margin-bottom: 4px; }
-    .back-home { margin-top: 20px; font-size: 13.5px; font-weight: 700; color: var(--ink-soft); }
-    .back-home a { color: var(--coral); }
 
     /* ===== 受伤棋子与治疗 ===== */
     .tile.injured .face.front { filter: saturate(.3) brightness(.96); }
@@ -200,11 +198,21 @@
 
     @media (prefers-reduced-motion: reduce) {
       * { animation: none !important; transition: none !important; }
+      .pop { opacity: 1 !important; transform: none !important; }
+    }
+
+    /* ===== 进场浮出（配合 ../js/clay.js 的 IntersectionObserver） ===== */
+    .pop { opacity: 0; transform: translateY(18px) scale(.97); }
+    .pop.in {
+      opacity: 1; transform: none;
+      transition: opacity .55s var(--spring), transform .55s var(--spring);
+      transition-delay: var(--d, 0s);
     }
   </style>
 </head>
 <body>
-  <div class="top">
+  <div class="top pop">
+    <a class="clay-btn ghost" href="../games.html">← 回游戏区</a>
     <h1>暗翻兽王棋 <small>· 同屏双人 / 人机</small></h1>
     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
       <div class="mode-group" id="mode-group">
@@ -217,23 +225,23 @@
     </div>
   </div>
 
-  <div class="status">
+  <div class="status pop" style="--d:.08s">
     <span class="turn-chip R" id="turn-chip">🔴 红方回合</span>
     <span class="nemesis" id="nemesis-info"></span>
     <span class="quiet" id="quiet-info"></span>
   </div>
 
-  <div class="board-wrap">
+  <div class="board-wrap pop" style="--d:.14s">
     <div class="board" id="board"></div>
   </div>
   <div class="hint" id="hint">点击任意背面棋子翻开 · 第一步只能翻棋</div>
 
-  <div class="trays">
+  <div class="trays pop" style="--d:.2s">
     <div class="tray"><div class="label">🔴 红方战损</div><div class="lost" id="lost-R"></div></div>
     <div class="tray"><div class="label">⚫ 黑方战损</div><div class="lost" id="lost-B"></div></div>
   </div>
 
-  <div class="rules" id="rules">
+  <div class="rules pop" style="--d:.24s" id="rules">
     <b>怎么玩：</b>
     <ol>
       <li>双方轮流行动，每回合只能做一件事：<b>翻棋</b> / <b>移动一格</b>（上下左右，目标必须为空）/ <b>吃子</b>（吃相邻的敌方明棋）。</li>
@@ -257,7 +265,7 @@
     </div>
   </div>
 
-  <p class="back-home">← <a href="../games.html">回游戏区</a></p>
+<script src="../js/clay.js"></script>
 
 <script>
 /* ============================================================

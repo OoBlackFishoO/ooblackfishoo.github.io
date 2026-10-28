@@ -99,7 +99,7 @@
           <span class="badge coral">NEW</span>
         </div>
         <h3>黏土泡泡 · 内置小游戏</h3>
-        <p class="desc">掉下来的泡泡带物理引擎，点爆得分；按一下"关重力"，它们就飘成太空泡泡。</p>
+        <p class="desc">物理引擎驱动的泡泡雨：点爆得分，按住左键划过能一次扫掉一串；每 100 分掉一颗超大泡泡，戳爆炸出一窝小的。</p>
         <div class="chips"><span class="chip">物理</span><span class="chip">解压</span><span class="chip">30 秒上头</span></div>
       </a>
 
@@ -194,6 +194,10 @@
         }
       }
     }, 3500);
+
+    /* 视频位还没填内容时先收起来，别在页面上留一排空框 */
+    var biliVideos = document.querySelector(".bili-videos");
+    if (biliVideos && !biliVideos.querySelector("iframe")) biliVideos.remove();
   </script>
 </body>
 </html>

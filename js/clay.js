@@ -25,7 +25,8 @@
 
   /* ---------- 2. 卡片跟随指针轻微 3D 倾斜（仅鼠标） ---------- */
   if (finePointer) {
-    document.querySelectorAll(".clay-card").forEach(function (card) {
+    /* data-no-tilt：长文阅读卡（如听力练习正文）不跟随指针倾斜 */
+    document.querySelectorAll(".clay-card:not([data-no-tilt])").forEach(function (card) {
       card.addEventListener("pointermove", function (e) {
         var r = card.getBoundingClientRect();
         var px = (e.clientX - r.left) / r.width - 0.5;

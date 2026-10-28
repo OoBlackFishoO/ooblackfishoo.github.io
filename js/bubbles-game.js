@@ -18,6 +18,19 @@
 
   var engine, balls = [], particles = [], walls = [];
   var W = 0, H = 420, score = 0, zeroG = false;
+  var GRAV = 1;                 /* 下落速度 */
+  var MAX_BALLS = 24;           /* 常驻泡泡上限；每点爆一颗大泡泡 +5 */
+  var BASE_MAX = MAX_BALLS;
+  var MAX_LIMIT = 80;           /* 上限增长的天花板，避免无尽模式后期太挤 */
+  var CLUSTER_N = 15;           /* 大泡泡炸开的小泡泡数量 */
+  var CLUSTER_MAX = MAX_BALLS + CLUSTER_N;   /* 炸开瞬间的临时上限，保证一波都放得下 */
+  var GIANT_EVERY = 100;        /* 平时：每 100 分一颗超大泡泡 */
+  var HIDDEN_EVERY = 25;        /* 隐藏模式：每 25 分一颗（只在本局生效） */
+  var HIDDEN_AT = 100;          /* 到 100 分进入隐藏模式；重开或刷新就关掉 */
+  var CLEAR_AT = 500;           /* 通关线 */
+  var hidden = false;
+  var nextGiant = GIANT_EVERY;
+  var celebrating = false, celebrated = false;
   var PASTEL = [
     { f: "#FF9A6E", d: "#E86F44", h: "#FFD3BE" },
     { f: "#FFDD88", d: "#E8B84F", h: "#FFF3CE" },
@@ -29,7 +42,7 @@
 
   /* ---------- 初始化 ---------- */
   engine = Engine.create();
-  engine.gravity.y = 1.1;
+  engine.gravity.y = GRAV;
 
   function setup() {
     W = wrap.clientWidth;
@@ -51,7 +64,7 @@
   }
 
   function spawnBall() {
-    if (balls.length >= 24) return;
+    if (balls.length >= MAX_BALLS) return;
     var r = 16 + Math.random() * 15;
     var x = r + Math.random() * (W - r * 2);
     /* 失重时直接生成在画面里（顶部生成会永远飘不进来） */
@@ -71,6 +84,53 @@
     Composite.add(engine.world, b);
   }
 
+  /* ---------- 超大泡泡：每 100 分掉一颗，戳爆炸出一窝小的 ---------- */
+  function spawnGiant() {
+    var r = 100;
+    var x = r + 16 + Math.random() * Math.max(10, W - r * 2 - 32);
+    var y = zeroG ? r + 30 + Math.random() * Math.max(10, H - r * 2 - 60) : -r - 16;
+    var b = Bodies.circle(x, y, r, {
+      restitution: 0.7,
+      friction: 0.001,
+      frictionAir: 0.012,        /* 比小泡泡飘一点，落得慢，好瞄准 */
+      density: 0.0012
+    });
+    b.giant = true;
+    b.clay = PASTEL[Math.floor(Math.random() * PASTEL.length)];
+    b.born = performance.now();
+    if (zeroG) Body.setVelocity(b, { x: (Math.random() - 0.5) * 1.6, y: (Math.random() - 0.5) * 1.6 });
+    balls.push(b);
+    Composite.add(engine.world, b);
+  }
+
+  function spawnCluster(x, y, n) {
+    for (var i = 0; i < n && balls.length < CLUSTER_MAX; i++) {
+      var r = 18 + Math.random() * 8;
+      var a = Math.random() * Math.PI * 2;
+      var d = Math.random() * 26;
+      var b = Bodies.circle(x + Math.cos(a) * d, y + Math.sin(a) * d, r, {
+        restitution: 0.86,
+        friction: 0.001,
+        frictionAir: 0.006,
+        density: 0.0012
+      });
+      b.clay = PASTEL[Math.floor(Math.random() * PASTEL.length)];
+      b.born = performance.now();
+      balls.push(b);
+      Composite.add(engine.world, b);
+      var sp = 4 + Math.random() * 5;
+      Body.setVelocity(b, { x: Math.cos(a) * sp, y: Math.sin(a) * sp - 2 });
+    }
+  }
+
+  /* 到了分数线就放一颗；场上已经有超大泡泡就等它被戳掉，不叠着刷 */
+  function maybeGiant() {
+    if (score < nextGiant) return;
+    for (var i = 0; i < balls.length; i++) if (balls[i].giant) return;
+    nextGiant += GIANT_EVERY;
+    spawnGiant();
+  }
+
   /* ---------- 爆裂粒子 ---------- */
   function popParticles(x, y, color, n) {
     if (reduceMotion) return;
@@ -86,39 +146,147 @@
     }
   }
 
-  /* ---------- 点爆 ---------- */
-  function popAt(x, y) {
-    var hits = Query.point(balls, { x: x, y: y });
-    if (hits.length) {
-      var b = hits[0];
-      Composite.remove(engine.world, b);
-      balls = balls.filter(function (o) { return o !== b; });
-      score++;
-      scoreEl.textContent = "得分 " + score;
-      scoreEl.classList.remove("bump");
-      void scoreEl.offsetWidth;
-      scoreEl.classList.add("bump");
-      popParticles(b.position.x, b.position.y, b.clay.f, 10);
-    } else {
-      popParticles(x, y, "#FFFFFF", 4);   /* 点空了也有一点反馈 */
+  /* ---------- 点爆 / 按住扫爆 ---------- */
+  function hitBall(x, y, pad) {
+    pad = pad || 0;
+    for (var i = 0; i < balls.length; i++) {
+      var b = balls[i];
+      var dx = b.position.x - x, dy = b.position.y - y;
+      var rr = b.circleRadius + pad;
+      if (dx * dx + dy * dy <= rr * rr) return b;
     }
+    return null;
+  }
+  /* ---------- 100 分：进入隐藏模式（本局有效） ---------- */
+  function enterHidden() {
+    if (hidden) return;
+    hidden = true;
+    /* 不动 nextGiant：第 100 分这颗照常掉，之后的间隔变成 35 */
+    GIANT_EVERY = HIDDEN_EVERY;
   }
 
-  canvas.addEventListener("pointerdown", function (e) {
+  /* ---------- 500 分：全屏撒花 + 通关提示，继续无尽模式 ---------- */
+  function celebrate() {
+    if (celebrating || celebrated) return;
+    celebrating = true;
+    celebrated = true;
+
+    var layer = document.createElement("div");
+    layer.className = "clear-layer";
+    var txt = document.createElement("div");
+    txt.className = "clear-txt";
+    txt.textContent = "🎉 通关啦！";
+    layer.appendChild(txt);
+
+    if (!reduceMotion) {
+      for (var i = 0; i < 64; i++) {
+        var p = document.createElement("span");
+        p.className = "confetti";
+        p.style.left = (Math.random() * 100) + "vw";
+        p.style.background = PASTEL[i % PASTEL.length].f;
+        p.style.width = (6 + Math.random() * 7) + "px";
+        p.style.height = (9 + Math.random() * 9) + "px";
+        layer.appendChild(p);
+        p.animate([
+          { transform: "translate3d(0,-10vh,0) rotate(0deg)", opacity: 1 },
+          { transform: "translate3d(" + ((Math.random() - 0.5) * 260) + "px," + (window.innerHeight + 40) + "px,0) rotate(" + ((Math.random() - 0.5) * 720) + "deg)", opacity: .95 }
+        ], {
+          duration: 1200 + Math.random() * 600,
+          easing: "cubic-bezier(.2,.7,.4,1)",
+          fill: "forwards"
+        });
+      }
+    }
+
+    document.body.appendChild(layer);
+    setTimeout(function () { layer.classList.add("out"); }, 2000);   /* 多留一秒再淡出 */
+    setTimeout(function () {
+      layer.remove();
+      celebrating = false;
+    }, 2500);
+  }
+
+  /* 超大泡泡炸开时轻轻震一下画布 */
+  function shakeCanvas() {
+    if (reduceMotion || !canvas.animate) return;
+    canvas.animate([
+      { transform: "translate(0,0)" },
+      { transform: "translate(-3px,2px)" },
+      { transform: "translate(3px,-2px)" },
+      { transform: "translate(-2px,-1px)" },
+      { transform: "translate(0,0)" }
+    ], { duration: 220, easing: "ease-out" });
+  }
+  function burstBall(b) {
+    Composite.remove(engine.world, b);
+    balls = balls.filter(function (o) { return o !== b; });
+    score++;
+    scoreEl.textContent = "得分 " + score;
+    scoreEl.classList.remove("bump");
+    void scoreEl.offsetWidth;
+    scoreEl.classList.add("bump");
+    popParticles(b.position.x, b.position.y, b.clay.f, b.giant ? 18 : 10);
+    if (b.giant) {
+      /* 屏幕泡泡上限跟着涨 5，并把炸开这一波的空间留足 */
+      MAX_BALLS = Math.min(MAX_LIMIT, MAX_BALLS + 5);
+      CLUSTER_MAX = MAX_BALLS + CLUSTER_N;
+      spawnCluster(b.position.x, b.position.y, CLUSTER_N);
+      shakeCanvas();
+    }
+    if (!hidden && score >= HIDDEN_AT) enterHidden();
+    maybeGiant();
+    if (score >= CLEAR_AT) celebrate();
+  }
+  function popAt(x, y) {
+    var b = hitBall(x, y, 6);          /* 手稍微偏一点也算中 */
+    if (b) burstBall(b);
+    else popParticles(x, y, "#FFFFFF", 4);   /* 点空了也有一点反馈 */
+  }
+
+  /* 左键按住划过：沿轨迹每 8px 采样，甩得再快也不会从泡泡缝里漏过去 */
+  var dragging = false, lastPt = null;
+  function sweepTo(x, y) {
+    var from = lastPt || { x: x, y: y };
+    var dx = x - from.x, dy = y - from.y;
+    var steps = Math.max(1, Math.min(80, Math.ceil(Math.hypot(dx, dy) / 8)));
+    for (var s = 1; s <= steps; s++) {
+      var b = hitBall(from.x + dx * s / steps, from.y + dy * s / steps, 8);
+      if (b) burstBall(b);      /* 大泡泡也会被扫爆 */
+    }
+    lastPt = { x: x, y: y };
+  }
+  function canvasPt(e) {
     var r = canvas.getBoundingClientRect();
-    popAt(e.clientX - r.left, e.clientY - r.top);
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+  function endDrag() { dragging = false; lastPt = null; }
+
+  canvas.addEventListener("pointerdown", function (e) {
+    if (e.pointerType === "mouse" && e.button !== 0) return;   /* 只认左键 */
+    dragging = true;
+    lastPt = canvasPt(e);
+    try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+    popAt(lastPt.x, lastPt.y);
+    e.preventDefault();
   });
 
   canvas.addEventListener("pointermove", function (e) {
-    var r = canvas.getBoundingClientRect();
-    var hit = Query.point(balls, { x: e.clientX - r.left, y: e.clientY - r.top }).length;
-    canvas.style.cursor = hit ? "pointer" : "default";
+    var p = canvasPt(e);
+    if (dragging) { sweepTo(p.x, p.y); canvas.style.cursor = "pointer"; return; }
+    canvas.style.cursor = hitBall(p.x, p.y, 4) ? "pointer" : "default";
+  });
+
+  canvas.addEventListener("pointerup", endDrag);
+  canvas.addEventListener("pointercancel", endDrag);
+  window.addEventListener("pointerup", endDrag);
+  canvas.addEventListener("pointerleave", function () {
+    if (!dragging) canvas.style.cursor = "default";
   });
 
   /* ---------- 按钮 ---------- */
   document.getElementById("btn-gravity").addEventListener("click", function () {
     zeroG = !zeroG;
-    engine.gravity.y = zeroG ? 0 : 1.1;
+    engine.gravity.y = zeroG ? 0 : GRAV;
     this.textContent = zeroG ? "🌍 开启重力" : "🚀 关闭重力";
     if (zeroG) {
       balls.forEach(function (b) {
@@ -132,6 +300,13 @@
     balls = [];
     particles = [];
     score = 0;
+    hidden = false;
+    GIANT_EVERY = 100;
+    nextGiant = GIANT_EVERY;
+    MAX_BALLS = BASE_MAX;
+    CLUSTER_MAX = MAX_BALLS + CLUSTER_N;
+    celebrating = false;
+    celebrated = false;
     scoreEl.textContent = "得分 0";
   });
 
@@ -196,7 +371,7 @@
   function tick(ts) {
     requestAnimationFrame(tick);
 
-    if (ts - lastSpawn > 850) {
+    if (ts - lastSpawn > 600) {
       lastSpawn = ts;
       spawnBall();
     }
@@ -250,6 +425,13 @@
   /* 调试句柄：控制台里可用 __bubbles.balls 查看泡泡 */
   window.__bubbles = {
     get engine() { return engine; },
-    get balls() { return balls.map(function (b) { return { x: Math.round(b.position.x), y: Math.round(b.position.y), r: Math.round(b.circleRadius) }; }); }
+    get balls() { return balls.map(function (b) { return { x: Math.round(b.position.x), y: Math.round(b.position.y), r: Math.round(b.circleRadius), giant: !!b.giant }; }); },
+    get nextGiant() { return nextGiant; },
+    get giantEvery() { return GIANT_EVERY; },
+    get maxBalls() { return MAX_BALLS; },
+    get clusterMax() { return CLUSTER_MAX; },
+    get hidden() { return hidden; },
+    setThreshold: function (n) { nextGiant = Math.max(0, Number(n) || 0); },
+    setScore: function (n) { score = Math.max(0, Number(n) || 0); scoreEl.textContent = "得分 " + score; }
   };
 })();
