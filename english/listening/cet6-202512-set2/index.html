@@ -64,6 +64,7 @@ body{min-height:100vh;display:flex;flex-direction:column}
 /* ---- 填空框 ---- */
 input.blank{border:0;background:#FFF0CC;padding:1px 8px;font-size:16px;font-family:var(--font);
   width:auto;min-width:3.8em;text-align:center;border-radius:10px;color:var(--ink);font-weight:700;
+  touch-action:manipulation;
   box-shadow:var(--clay-in-light),inset 0 -3px 6px rgba(93,63,43,.12)}
 input.blank:focus{outline:0;background:var(--butter)}
 input.blank.ok{background:#DFF5E9;box-shadow:var(--clay-in-light),inset 0 -3px 6px rgba(39,153,84,.22)}
@@ -71,6 +72,7 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
 
 /* ---- 判分操作条 ---- */
 .actionbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0 0}
+.peek-hint{font-size:12px;margin-left:2px}
 .score-chip{display:inline-block;padding:7px 18px;border-radius:999px;background:var(--butter);
   font-weight:900;font-size:13.5px;margin-left:auto;
   box-shadow:var(--clay-in-light),var(--clay-in-dark),3px 5px 10px rgba(93,63,43,.15)}
@@ -115,6 +117,10 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
 .fp-row input[type=number]{width:58px;padding:4px 8px;border:0;border-radius:999px;background:var(--bg);
   font-family:var(--font);font-size:12px;font-weight:800;color:var(--ink);text-align:center;box-shadow:var(--clay-in-light)}
 .fp-row input[type=number]:disabled{opacity:.45}
+.fp-vol{flex-wrap:nowrap;gap:8px}
+.fp-vol input[type=range]{flex:1;min-width:80px;height:18px;margin:0;accent-color:var(--coral)}
+.fp-vol .vol-val{font-size:11.5px;font-weight:800;color:var(--ink-soft);min-width:36px;text-align:right;
+  font-variant-numeric:tabular-nums}
 
 /* ---- 底部播放坞（唯一播放入口） ---- */
 .dock{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:65;
@@ -266,8 +272,9 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
 
   <div class="actionbar">
     <button class="clay-btn" id="check">✅ 判分</button>
-    <button class="clay-btn ghost small" id="show">👀 看答案</button>
+    <button class="clay-btn ghost small" id="show" title="显示全部答案；双击某一个空格可以只看这一个">👀 看答案</button>
     <button class="clay-btn ghost small" id="clear">🧽 清空</button>
+    <span class="hint peek-hint">双击空格 = 只看这一个词</span>
     <span class="score-chip" id="score" style="display:none"></span>
   </div>
 </div>
@@ -308,6 +315,15 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
         <button class="opt" type="button" data-rate="1">1.0x</button>
         <button class="opt" type="button" data-rate="1.25">1.25x</button>
         <button class="opt" type="button" data-rate="1.5">1.5x</button>
+      </div>
+    </div>
+
+    <div class="fp-group">
+      <div class="fp-label">音量</div>
+      <div class="fp-row fp-vol">
+        <span id="volIcon">🔊</span>
+        <input type="range" id="volume" min="0" max="100" step="5" value="100" aria-label="音量">
+        <span class="vol-val" id="volVal">100%</span>
       </div>
     </div>
 
@@ -437,7 +453,7 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
   var holdPage = false;      /* 手动翻页后先不跟着音频自动跳页 */
 
   /* 全站共享的设置：page = 每页放什么，seg = 段内怎么切 */
-  var SET = { page: "q", seg: "full", rate: 1, follow: true, blank: "mid", mode: "random", skip: true, everyN: 7 };
+  var SET = { page: "q", seg: "full", rate: 1, volume: 1, follow: true, blank: "mid", mode: "random", skip: true, everyN: 7 };
   var DENSITY = { low: 25, mid: 45, high: 70, max: 95 };
   var DENSITY_LABEL = { low: "少（25%）", mid: "中（45%）", high: "多（70%）", max: "极多（95%，接近默写）" };
 
@@ -522,6 +538,15 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
     $("everyN").disabled = SET.mode !== "everyN";
     audio.playbackRate = Number(SET.rate) || 1;
     $("tcRate").textContent = (Number(SET.rate) === 1 ? "1.0" : String(SET.rate)) + "x";
+    var vol = Number(SET.volume);
+    if (!isFinite(vol) || vol < 0) vol = 0;
+    if (vol > 1) vol = 1;
+    SET.volume = vol;
+    audio.volume = vol;
+    var volPct = Math.round(vol * 100);
+    $("volume").value = volPct;
+    $("volVal").textContent = volPct + "%";
+    $("volIcon").textContent = volPct === 0 ? "🔇" : (volPct < 50 ? "🔉" : "🔊");
     saveSettings();
   }
 
@@ -768,10 +793,22 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
   $("prevPage").addEventListener("click", function () { showPage(page - 1, true); });
   $("nextPage").addEventListener("click", function () { showPage(page + 1, true); });
   document.addEventListener("keydown", function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
     var tag = document.activeElement && document.activeElement.tagName;
     if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-    if (e.key === "ArrowLeft") showPage(page - 1, true);
-    else if (e.key === "ArrowRight") showPage(page + 1, true);
+    if (e.key === " " || e.code === "Space") {
+      if (tag === "BUTTON") return;          /* 焦点在按钮上时，空格交给按钮自己 */
+      e.preventDefault();                    /* 别让空格把页面滚下去 */
+      $("mb-play").click();
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault(); stepSen(-1);
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault(); stepSen(1);
+    } else if (e.key === "PageUp") {
+      e.preventDefault(); showPage(page - 1, true);
+    } else if (e.key === "PageDown") {
+      e.preventDefault(); showPage(page + 1, true);
+    }
   });
 
   /* ---------- 跟听 ---------- */
@@ -956,6 +993,15 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
     SET.rate = Number(b.dataset.rate);
     syncChips();
   });
+  $("volume").addEventListener("input", function () {
+    var v = Number(this.value) / 100;
+    SET.volume = v;
+    audio.volume = v;
+    var pct = Math.round(v * 100);
+    $("volVal").textContent = pct + "%";
+    $("volIcon").textContent = pct === 0 ? "🔇" : (pct < 50 ? "🔉" : "🔊");
+  });
+  $("volume").addEventListener("change", function () { syncChips(); });
   $("blankChips").addEventListener("click", function (e) {
     var b = e.target.closest(".opt"); if (!b) return;
     if (SET.mode === "everyN") { toast("当前是「每隔 N 词」，密度档位不生效"); return; }
@@ -1085,6 +1131,43 @@ input.blank.bad{background:#FFE4EC;box-shadow:var(--clay-in-light),inset 0 -3px 
   }
   document.addEventListener("input", function (e) {
     if (e.target.classList && e.target.classList.contains("blank")) { fitBlank(e.target); scheduleSave(); }
+  });
+
+  /* ---------- 单词级查看答案：双击 / 双击轻点 / Shift+Enter ---------- */
+  function peekBlank(inp) {
+    if (!inp || !inp.dataset || !inp.dataset.ans) return;
+    inp.value = inp.dataset.ans;
+    inp.classList.remove("bad");
+    fitBlank(inp, true);
+    if (inp.select) inp.select();
+    saveState(true);
+  }
+  $("pages").addEventListener("dblclick", function (e) {
+    var t = e.target;
+    if (!t.classList || !t.classList.contains("blank")) return;
+    e.preventDefault();
+    peekBlank(t);
+  });
+  /* iOS 上双击输入框不一定给 dblclick，这里自己认触摸连点 */
+  var lastTap = { id: "", t: 0, x: 0, y: 0 };
+  $("pages").addEventListener("pointerup", function (e) {
+    if (e.pointerType !== "touch") return;
+    var t = e.target;
+    if (!t.classList || !t.classList.contains("blank")) return;
+    var now = Date.now();
+    if (lastTap.id === t.dataset.id && now - lastTap.t < 350 &&
+        Math.abs(e.clientX - lastTap.x) < 24 && Math.abs(e.clientY - lastTap.y) < 24) {
+      peekBlank(t);
+      lastTap.id = "";
+    } else {
+      lastTap = { id: t.dataset.id, t: now, x: e.clientX, y: e.clientY };
+    }
+  });
+  $("pages").addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && e.shiftKey && e.target.classList && e.target.classList.contains("blank")) {
+      e.preventDefault();
+      peekBlank(e.target);
+    }
   });
   $("saveNow").addEventListener("click", function () { saveState(false); });
   $("clearProg").addEventListener("click", function () {
