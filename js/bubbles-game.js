@@ -18,7 +18,7 @@
 
   var engine, balls = [], particles = [], walls = [];
   var W = 0, H = 420, score = 0, zeroG = false;
-  var GRAV = 1;                 /* 下落速度 */
+  var GRAV = 0.5;               /* 下落速度 */
   var MAX_BALLS = 24;           /* 常驻泡泡上限；每点爆一颗大泡泡 +5 */
   var BASE_MAX = MAX_BALLS;
   var MAX_LIMIT = 80;           /* 上限增长的天花板，避免无尽模式后期太挤 */
@@ -77,6 +77,9 @@
     });
     if (zeroG) {
       Body.setVelocity(b, { x: (Math.random() - 0.5) * 3, y: (Math.random() - 0.5) * 3 });
+    } else {
+      /* 不竖直往下砸：给一点随机横向初速，斜斜地飘下来 */
+      Body.setVelocity(b, { x: (Math.random() - 0.5) * 1.8, y: 0 });
     }
     b.clay = PASTEL[Math.floor(Math.random() * PASTEL.length)];
     b.born = performance.now();
@@ -99,6 +102,7 @@
     b.clay = PASTEL[Math.floor(Math.random() * PASTEL.length)];
     b.born = performance.now();
     if (zeroG) Body.setVelocity(b, { x: (Math.random() - 0.5) * 1.6, y: (Math.random() - 0.5) * 1.6 });
+    else Body.setVelocity(b, { x: (Math.random() - 0.5) * 0.8, y: 0 });
     balls.push(b);
     Composite.add(engine.world, b);
   }
