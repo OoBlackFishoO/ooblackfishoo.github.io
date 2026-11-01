@@ -19,6 +19,10 @@
   var engine, balls = [], particles = [], walls = [];
   var W = 0, H = 420, score = 0, zeroG = false;
   var GRAV = 0.5;               /* 下落速度 */
+  var Z_SPEED_MAX = 5.4;        /* 失重：单帧位移上限，飞太快就点不中了 */
+  var Z_CRUISE = 1.15;          /* 失重：巡航速度，泡泡慢慢飘 */
+  var Z_ACCEL = 0.09;           /* 失重：巡航加速度（每帧速度增量） */
+  var Z_EDGE = 46;              /* 失重：离边框这么近开始往回拐 */
   var MAX_BALLS = 24;           /* 常驻泡泡上限；每点爆一颗大泡泡 +5 */
   var BASE_MAX = MAX_BALLS;
   var MAX_LIMIT = 80;           /* 上限增长的天花板，避免无尽模式后期太挤 */
@@ -107,11 +111,14 @@
     Composite.add(engine.world, b);
   }
 
+  /* 大泡泡炸开：在它的身位里均匀撒一窝（黄金角螺线，别叠成一团）。
+     叠在一起物体会被强行弹开、瞬间飙出画面，所以位置要散、速度要收。 */
   function spawnCluster(x, y, n) {
+    var GA = Math.PI * (3 - Math.sqrt(5));
     for (var i = 0; i < n && balls.length < CLUSTER_MAX; i++) {
       var r = 18 + Math.random() * 8;
-      var a = Math.random() * Math.PI * 2;
-      var d = Math.random() * 26;
+      var a = i * GA + (Math.random() - 0.5) * 0.3;
+      var d = (18 + 52 * Math.sqrt(i / Math.max(n - 1, 1))) * (0.92 + Math.random() * 0.16);
       var b = Bodies.circle(x + Math.cos(a) * d, y + Math.sin(a) * d, r, {
         restitution: 0.86,
         friction: 0.001,
@@ -122,8 +129,12 @@
       b.born = performance.now();
       balls.push(b);
       Composite.add(engine.world, b);
-      var sp = 4 + Math.random() * 5;
-      Body.setVelocity(b, { x: Math.cos(a) * sp, y: Math.sin(a) * sp - 2 });
+      /* 失重时没有重力把它们拉回来，冲太快就再也见不到了 → 轻轻散开即可 */
+      var sp = zeroG ? 2.4 + Math.random() * 1.6 : 4 + Math.random() * 5;
+      Body.setVelocity(b, {
+        x: Math.cos(a) * sp,
+        y: Math.sin(a) * sp - (zeroG ? 0 : 2)
+      });
     }
   }
 
@@ -133,6 +144,86 @@
     for (var i = 0; i < balls.length; i++) if (balls[i].giant) return;
     nextGiant += GIANT_EVERY;
     spawnGiant();
+  }
+
+  /* ---------- 失重模式：自己会"航行"，永不跑出画面 ---------- */
+  /* 0 = 离边还远，1 = 已经贴上了；负值（出界了）也按 1 算 */
+  function closeness(gap, band) {
+    if (gap >= band) return 0;
+    return (band - Math.max(gap, 0)) / band;
+  }
+  /* 把角度 a 朝 b 转 k（0~1）那么多，走的是较近的那个方向 */
+  function turnTo(a, b, k) {
+    var d = (b - a + Math.PI) % (Math.PI * 2);
+    if (d < 0) d += Math.PI * 2;
+    return a + (d - Math.PI) * k;
+  }
+
+  /* 每颗泡泡都有一点"自己的主意"：朝一个慢慢转的朝向匀速飘。
+     贴边时只把"航向"往回掰（而不是硬推速度）——正对墙面的球才会真正掉头，
+     不然推力和朝向互相抵消，球就会贴在边上原地抖。 */
+  function floatBall(b) {
+    var p = b.position, br = b.circleRadius;
+    var band = Math.min(Z_EDGE, Math.min(W, H) * 0.11);   /* 小画布别让边界带占太满 */
+
+    if (b.heading === undefined) b.heading = Math.random() * Math.PI * 2;
+    b.heading += (Math.random() - 0.5) * 0.04;            /* 慢慢拐弯，不是直线滑行 */
+
+    /* 离哪条边近，就往反方向掰多少 */
+    var sx = closeness(p.x - br, band) - closeness(W - br - p.x, band);
+    var sy = closeness(p.y - br, band) - closeness(H - br - p.y, band);
+    var pull = Math.min(1, Math.hypot(sx, sy));
+    if (pull > 0.02) b.heading = turnTo(b.heading, Math.atan2(sy, sx), pull * 0.25);
+
+    var vx = b.velocity.x, vy = b.velocity.y;
+    var cruise = Z_CRUISE * (b.giant ? 0.55 : 1);         /* 超大泡泡慢悠悠地飘 */
+    if (Math.hypot(vx, vy) > cruise) {
+      vx *= 0.988; vy *= 0.988;                           /* 炸开时冲出去的速度慢慢回落 */
+    } else {
+      vx += Math.cos(b.heading) * Z_ACCEL;                /* 慢了就顺着航向加力 */
+      vy += Math.sin(b.heading) * Z_ACCEL;
+    }
+
+    var sp = Math.hypot(vx, vy);
+    if (sp > Z_SPEED_MAX) { vx *= Z_SPEED_MAX / sp; vy *= Z_SPEED_MAX / sp; }
+    Body.setVelocity(b, { x: vx, y: vy });
+  }
+
+  /* 硬保险：真被挤出去了就贴回边上，并把速度调头。
+     失重时没有重力，飞出去就再也回不来，还会一直占着泡泡名额。 */
+  function clampInside(b) {
+    var r = b.circleRadius, p = b.position;
+    var v = b.velocity;
+    var x = p.x, y = p.y, vx = v.x, vy = v.y;
+
+    if (r * 2 < W) {
+      if (x < r) { x = r; if (vx < 0) vx = -vx * 0.6; }
+      else if (x > W - r) { x = W - r; if (vx > 0) vx = -vx * 0.6; }
+    }
+    if (r * 2 < H) {
+      if (y < r) { y = r; if (vy < 0) vy = -vy * 0.6; }
+      else if (y > H - r) { y = H - r; if (vy > 0) vy = -vy * 0.6; }
+    }
+
+    if (x !== p.x || y !== p.y) Body.setPosition(b, { x: x, y: y });
+    if (vx !== v.x || vy !== v.y) Body.setVelocity(b, { x: vx, y: vy });
+  }
+
+  /* 切换重力：进去之前先把画面外的泡泡收回来看得见的地方 */
+  function setZeroG(on) {
+    zeroG = on;
+    engine.gravity.y = on ? 0 : GRAV;
+    balls.forEach(function (b) {
+      if (on) {
+        clampInside(b);
+        Body.setVelocity(b, {
+          x: (Math.random() - 0.5) * 1.6,
+          y: (Math.random() - 0.5) * 1.6 - 0.6      /* 略微上浮，像失重该有的样子 */
+        });
+      } else {
+        Body.setVelocity(b, { x: b.velocity.x * 0.3, y: 0 });
+      }
+    });
   }
 
   /* ---------- 爆裂粒子 ---------- */
@@ -289,14 +380,8 @@
 
   /* ---------- 按钮 ---------- */
   document.getElementById("btn-gravity").addEventListener("click", function () {
-    zeroG = !zeroG;
-    engine.gravity.y = zeroG ? 0 : GRAV;
+    setZeroG(!zeroG);
     this.textContent = zeroG ? "🌍 开启重力" : "🚀 关闭重力";
-    if (zeroG) {
-      balls.forEach(function (b) {
-        Body.setVelocity(b, { x: b.velocity.x * 0.4, y: -2 - Math.random() * 2 });
-      });
-    }
   });
 
   document.getElementById("btn-reset").addEventListener("click", function () {
@@ -383,20 +468,9 @@
     Engine.update(engine, 1000 / 60);
 
     if (zeroG) {
-      balls.forEach(function (b) {        /* 失重：随机漂 + 软边界轻轻推回画面内 */
-        var m = 0.00005 * b.mass;
-        var p = b.position, br = b.circleRadius;
-        if (p.x < br + 10) Body.applyForce(b, p, { x: m, y: 0 });
-        if (p.x > W - br - 10) Body.applyForce(b, p, { x: -m, y: 0 });
-        if (p.y < br + 10) Body.applyForce(b, p, { x: 0, y: m });
-        if (p.y > H - br - 10) Body.applyForce(b, p, { x: 0, y: -m });
-        if (Math.random() < 0.04) {
-          Body.applyForce(b, p, {
-            x: (Math.random() - 0.5) * 4 * m,
-            y: (Math.random() - 0.5) * 4 * m
-          });
-        }
-        Body.setVelocity(b, { x: b.velocity.x * 0.999, y: b.velocity.y * 0.999 });
+      balls.forEach(function (b) {
+        clampInside(b);      /* 先保证在画面里 */
+        floatBall(b);        /* 再让它飘 */
       });
     }
 
@@ -435,7 +509,11 @@
     get maxBalls() { return MAX_BALLS; },
     get clusterMax() { return CLUSTER_MAX; },
     get hidden() { return hidden; },
+    get zeroG() { return zeroG; },
+    setScore: function (n) { score = Math.max(0, Number(n) || 0); scoreEl.textContent = "得分 " + score; },
     setThreshold: function (n) { nextGiant = Math.max(0, Number(n) || 0); },
-    setScore: function (n) { score = Math.max(0, Number(n) || 0); scoreEl.textContent = "得分 " + score; }
+    setZeroG: setZeroG,
+    pop: function (x, y) { popAt(x, y); },      /* 控制台里按坐标点一下 */
+    giant: function () { spawnGiant(); }        /* 手动放一颗超大泡泡，方便调参数 */
   };
 })();
