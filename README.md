@@ -15,8 +15,26 @@
 │   └── bubbles-game.js  内置小游戏的物理与画面
 ├── libs/             three.js 与 matter.js（已本地化，不需要联网加载）
 ├── games/            以后你自己的小游戏放这里
+├── tools/            本地开发辅助（不进 GitHub Pages 产物）
+│   ├── serve.py      带 Range 的本地服务器（audio 能拖动）
+│   └── linkcheck.py  全站死链自检
 └── images/           图片（logo.jpg 是你的头像）
 ```
+
+## 本地预览与自检
+
+**双击 `tools\serve.bat`** —— 自动找 Python、起服务、打开浏览器，最省事。
+
+手动方式：
+
+```bash
+python tools/serve.py --open    # --open 会自动开浏览器；不带则只起服务
+python tools/serve.py 8766      # 换端口
+python tools/linkcheck.py       # 检查所有本地引用，0 处失效才算过
+```
+
+`python -m http.server` **不行**——它不支持 Range，练习页音频拖不动、跳转失效。
+`serve.py` 默认服务仓库根目录，加第二个参数可指定其它目录。
 
 ## 怎么改
 
